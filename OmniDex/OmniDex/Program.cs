@@ -1,11 +1,15 @@
 using OmniDex.Client.Pages;
 using OmniDex.Components;
+using OmniDex.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveWebAssemblyComponents();
+
+builder.Services.AddScoped<PokeApiService>();
+builder.Services.AddHttpClient<PokeApiService>();
 
 var app = builder.Build();
 

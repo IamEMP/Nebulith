@@ -1,7 +1,32 @@
 ﻿@page "/"
+@using OmniDex.Services
+@inject PokeApiService PokeApiService
 
-<PageTitle>Home</PageTitle>
+<h3>Pokedex</h3>
 
-<h1>Hello, world!</h1>
+@if (pokemonList == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <div class="pokemon-list">
+        @foreach (var pokemon in pokemonList)
+        {
+            <div class="pokemon-card">
+                <a href="/pokemon/@pokemon.Name">
+                    <h4>@pokemon.Name</h4>
+                </a>
+            </div>
+        }
+    </div>
+}
 
-Welcome to your new app.
+@code {
+    private List<Client.Services.PokeService.Result>? pokemonList;
+
+    protected override async Task OnInitializedAsync()
+    {
+        pokemonList = await PokeApiService.GetPokemonListAsync();
+    }
+}
