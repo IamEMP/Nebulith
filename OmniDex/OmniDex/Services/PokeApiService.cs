@@ -72,5 +72,56 @@ namespace OmniDex.Services
                 return null;
             }
         }
+        // In Services/PokeApiService.cs
+
+        public async Task<List<PokemonResult>?> GetEvolutionChainAsync(string pokemonName)
+        {
+            var cacheKey = $"evolution-{pokemonName.ToLower()}";
+
+            // Check the cache first
+            if (_cache.TryGetValue(cacheKey, out List<PokemonResult>? cachedChain))
+            {
+                return cachedChain;
+            }
+
+            try
+            {
+                // Get the species data to find the evolution chain URL
+                var speciesUrl = $"{BaseUrl}/pokemon-species/{pokemonName.ToLower()}";
+                var speciesData = await _httpClient.GetFromJsonAsync<PokemonSpecies>(speciesUrl);
+                if (speciesData == null || string.IsNullOrEmpty(speciesData.EvolutionChain.Url))
+                {
+                    return null;
+                }
+
+                // Get the actual evolution chain data from the URL
+                var evolutionData = await _httpClient.GetFromJsonAsync<EvolutionChainResponse>(speciesData.EvolutionChain.Url);
+                if (evolutionData == null)
+                {
+                    return null;
+                }
+
+                // Process the nested data into a flat list
+                var evolutionChain = new List<PokemonResult>();
+                var currentLink = evolutionData.Chain;
+                do
+                {
+                    evolutionChain.Add(currentLink.Species);
+                    currentLink = currentLink.EvolvesTo.FirstOrDefault();
+                } while (currentLink != null);
+
+                // Cache the result
+                var cacheEntryOptions = new MemoryCacheEntryOptions()
+                    .SetAbsoluteExpiration(TimeSpan.FromHours(24));
+                _cache.Set(cacheKey, evolutionChain, cacheEntryOptions);
+
+                return evolutionChain;
+            }
+            catch (HttpRequestException ex)
+            {
+                Console.WriteLine($"Error fetching evolution chain for {pokemonName}: {ex.Message}");
+                return null;
+            }
+        }
     }
 }

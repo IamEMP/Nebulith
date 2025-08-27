@@ -28,17 +28,52 @@ else
     </div>
 }
 
+@if (_evolutionChain.Any() && _evolutionChain.Count > 1)
+{
+    <div class="evolution-section">
+        <h3>Evolution Chain</h3>
+        <div class="evolution-chain-container">
+            @for (var i = 0; i < _evolutionChain.Count; i++)
+            {
+                var evolution = _evolutionChain[i];
+                <a href="/pokemon/@evolution.Name" class="evolution-stage">
+                    <img src="@GetPokemonImageUrl(evolution.Url)" alt="@evolution.Name" />
+                    <span>@evolution.Name</span>
+                </a>
+
+                @if (i < _evolutionChain.Count - 1)
+                {
+                    <span class="evolution-arrow">→</span>
+                }
+            }
+        </div>
+    </div>
+}
+
 @code {
     [Parameter]
     public string Name { get; set; } = string.Empty;
 
     private PokemonDetail? _pokemon;
+    private List<PokemonResult> _evolutionChain = new();
 
     protected override async Task OnInitializedAsync()
     {
         if (!string.IsNullOrEmpty(Name))
         {
-            _pokemon = await PokeService.GetPokemonDetailsAsync(Name);
+            var pokemonTask = PokeService.GetPokemonDetailsAsync(Name);
+            var evolutionTask = PokeService.GetEvolutionChainAsync(Name);
+
+            await Task.WhenAll(pokemonTask, evolutionTask);
+
+            _pokemon = await pokemonTask;
+            _evolutionChain = (await evolutionTask) ?? new();
         }
+
+    }
+    private string GetPokemonImageUrl(string pokemonUrl)
+    {
+        var pokemonId = pokemonUrl.TrimEnd('/').Split('/').Last();
+        return $"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/{pokemonId}.png";
     }
 }

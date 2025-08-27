@@ -57,4 +57,33 @@ namespace OmniDex.Models
         [JsonPropertyName("name")]
         public string Name { get; set; } = string.Empty;
     }
+
+    public class PokemonSpecies
+    {
+        [JsonPropertyName("evolution_chain")]
+        public EvolutionChainUrl EvolutionChain { get; set; } = new();
+    }
+
+    public class EvolutionChainUrl
+    {
+        [JsonPropertyName("url")]
+        public string Url { get; set; } = string.Empty;
+    }
+
+    // For the evolution-chain endpoint URL, to get the actual chain data
+    public class EvolutionChainResponse
+    {
+        [JsonPropertyName("chain")]
+        public ChainLink Chain { get; set; } = new();
+    }
+
+    // This class is recursive to handle the nested structure
+    public class ChainLink
+    {
+        [JsonPropertyName("species")]
+        public PokemonResult Species { get; set; } = new(); // We can reuse PokemonResult here!
+
+        [JsonPropertyName("evolves_to")]
+        public List<ChainLink> EvolvesTo { get; set; } = new();
+    }
 }
