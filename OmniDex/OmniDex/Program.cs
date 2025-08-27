@@ -1,4 +1,4 @@
-using OmniDex.Client.Pages;
+
 using OmniDex.Components;
 using OmniDex.Services;
 
@@ -6,10 +6,13 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddRazorComponents()
-    .AddInteractiveWebAssemblyComponents();
+    .AddInteractiveServerComponents();
+
 
 builder.Services.AddScoped<PokeApiService>();
 builder.Services.AddHttpClient<PokeApiService>();
+
+builder.Services.AddMemoryCache();
 
 var app = builder.Build();
 
@@ -32,7 +35,8 @@ app.UseAntiforgery();
 
 app.MapStaticAssets();
 app.MapRazorComponents<App>()
-    .AddInteractiveWebAssemblyRenderMode()
-    .AddAdditionalAssemblies(typeof(OmniDex.Client._Imports).Assembly);
+    .AddInteractiveServerRenderMode();
+    
+    
 
 app.Run();
