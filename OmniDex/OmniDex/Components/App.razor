@@ -151,6 +151,50 @@
             .type-badge.fairy {
                 background-color: #ee99ac;
             }
+
+        /* Evoloution chart */
+        .evolution-section {
+            margin-top: 2rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid #eee;
+        }
+
+        .evolution-chain-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .evolution-stage {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-decoration: none;
+            color: inherit;
+            transition: transform 0.2s;
+        }
+
+            .evolution-stage:hover {
+                transform: scale(1.1);
+            }
+
+            .evolution-stage img {
+                width: 80px;
+                height: 80px;
+            }
+
+            .evolution-stage span {
+                text-transform: capitalize;
+                font-weight: bold;
+                margin-top: 0.5rem;
+            }
+
+        .evolution-arrow {
+            font-size: 2rem;
+            color: #888;
+        }
     </style>
 </HeadContent>
 
