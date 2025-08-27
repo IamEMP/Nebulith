@@ -1,20 +1,28 @@
 ﻿@page "/pokedex"
+@rendermode InteractiveServer
 @using OmniDex.Services
-@using static OmniDex.Client.Services.PokeService
+@using OmniDex.Models
 @inject PokeApiService PokeService
 
 <PageTitle>OmniDex</PageTitle>
 
 <h1>OmniDex</h1>
 
-@if (_pokemonList == null)
+<input type="text"
+       class="search-bar"
+       placeholder="Search Pokémon..."
+       @bind="searchTerm"
+       @bind:event="oninput" />
+
+@if (!_fullPokemonList.Any())
 {
     <p><em>Loading Pokémon... ✨</em></p>
 }
 else
 {
     <div class="pokemon-grid">
-        @foreach (var pokemon in _pokemonList.Results)
+        @* ✅ FIX 1: Loop over the FilteredPokemon property *@
+        @foreach (var pokemon in FilteredPokemon)
         {
             <a href="/pokemon/@pokemon.Name" class="pokemon-link">
             <div class="pokemon-card">
@@ -27,20 +35,32 @@ else
 }
 
 @code {
-    private PokemonListResponse? _pokemonList;
+    // ✅ FIX 2: Simplify variables to match your service's return type
+    private List<PokemonResult> _fullPokemonList = new();
+    private string searchTerm = string.Empty;
+
+    private List<PokemonResult> FilteredPokemon
+    {
+        get
+        {
+            if (string.IsNullOrWhiteSpace(searchTerm))
+            {
+                return _fullPokemonList;
+            }
+            
+            return _fullPokemonList
+                .Where(p => p.Name.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
+                .ToList();
+        }
+    }
 
     protected override async Task OnInitializedAsync()
     {
-        // Fetch the Pokémon data when the page loads
-        _pokemonList = new PokemonListResponse
-        {
-            Results = await PokeService.GetPokemonListAsync()
-        };
+        _fullPokemonList = await PokeService.GetPokemonListAsync() ?? new List<PokemonResult>();
     }
 
     private string GetPokemonImageUrl(string pokemonUrl)
     {
-        // The Pokémon ID is the last part of its URL
         var pokemonId = pokemonUrl.TrimEnd('/').Split('/').Last();
         return $"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/{pokemonId}.png";
     }

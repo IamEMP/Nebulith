@@ -4,6 +4,21 @@ namespace OmniDex.Models
 {
     // Add these to PokemonModels.cs
 
+    public class PokemonListResponse
+    {
+        [JsonPropertyName("results")]
+        public List<PokemonResult> Results { get; set; } = new();
+    }
+
+    public class PokemonResult
+    {
+        [JsonPropertyName("name")]
+        public string Name { get; set; } = string.Empty;
+
+        [JsonPropertyName("url")]
+        public string Url { get; set; } = string.Empty;
+    }
+
     public class PokemonDetail
     {
         [JsonPropertyName("id")]
