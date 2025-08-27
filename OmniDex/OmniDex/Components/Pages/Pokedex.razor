@@ -1,0 +1,47 @@
+﻿@page "/pokedex"
+@using OmniDex.Services
+@using static OmniDex.Client.Services.PokeService
+@inject PokeApiService PokeService
+
+<PageTitle>OmniDex</PageTitle>
+
+<h1>OmniDex</h1>
+
+@if (_pokemonList == null)
+{
+    <p><em>Loading Pokémon... ✨</em></p>
+}
+else
+{
+    <div class="pokemon-grid">
+        @foreach (var pokemon in _pokemonList.Results)
+        {
+            <a href="/pokemon/@pokemon.Name" class="pokemon-link">
+            <div class="pokemon-card">
+                <img src="@GetPokemonImageUrl(pokemon.Url)" alt="@pokemon.Name" />
+                <h4>@pokemon.Name</h4>
+            </div>
+            </a>
+        }
+    </div>
+}
+
+@code {
+    private PokemonListResponse? _pokemonList;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Fetch the Pokémon data when the page loads
+        _pokemonList = new PokemonListResponse
+        {
+            Results = await PokeService.GetPokemonListAsync()
+        };
+    }
+
+    private string GetPokemonImageUrl(string pokemonUrl)
+    {
+        // The Pokémon ID is the last part of its URL
+        var pokemonId = pokemonUrl.TrimEnd('/').Split('/').Last();
+        return $"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/{pokemonId}.png";
+    }
+}

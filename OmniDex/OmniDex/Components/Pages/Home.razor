@@ -2,31 +2,10 @@
 @using OmniDex.Services
 @inject PokeApiService PokeApiService
 
-<h3>Pokedex</h3>
+<h3>Welcome to OmniDex</h3>
 
-@if (pokemonList == null)
-{
-    <p><em>Loading...</em></p>
-}
-else
-{
-    <div class="pokemon-list">
-        @foreach (var pokemon in pokemonList)
-        {
-            <div class="pokemon-card">
-                <a href="/pokemon/@pokemon.Name">
-                    <h4>@pokemon.Name</h4>
-                </a>
-            </div>
-        }
-    </div>
-}
+
 
 @code {
-    private List<Client.Services.PokeService.Result>? pokemonList;
-
-    protected override async Task OnInitializedAsync()
-    {
-        pokemonList = await PokeApiService.GetPokemonListAsync();
-    }
+    // You can add any additional logic or data fetching here if needed
 }

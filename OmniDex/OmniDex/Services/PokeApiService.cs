@@ -1,4 +1,4 @@
-﻿using static OmniDex.Client.Services.PokeService;
+﻿using OmniDex.Models;
 
 namespace OmniDex.Services
 {
@@ -12,15 +12,28 @@ namespace OmniDex.Services
             _httpClient = httpClient;
         }
 
-        public async Task<List<Result>> GetPokemonListAsync()
+        public async Task<List<Client.Services.PokeService.Result>> GetPokemonListAsync()
         {
-            var response = await _httpClient.GetFromJsonAsync<PokemonListResponse>($"{BaseUrl}pokemon?limit=151");
-            return response?.Results ?? new List<Result>();
+            var response = await _httpClient.GetFromJsonAsync<Client.Services.PokeService.PokemonListResponse>($"{BaseUrl}pokemon?limit=151");
+            return response?.Results ?? new List<Client.Services.PokeService.Result>();
         }
 
         public async Task<PokemonDetail?> GetPokemonDetailsAsync(string name)
         {
-            return await _httpClient.GetFromJsonAsync<PokemonDetail>($"{BaseUrl}pokemon/{name}");
+            try
+            {
+                var url = $"https://pokeapi.co/api/v2/pokemon/{name.ToLower()}";
+                var response = await _httpClient.GetFromJsonAsync<PokemonDetail>(url);
+                return response;
+            }
+            catch (HttpRequestException ex)
+            {
+                Console.WriteLine($"Error fetching details for {name}: {ex.Message}");
+                return null;
+            }
+
         }
+
+
     }
 }

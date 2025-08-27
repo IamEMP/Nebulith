@@ -1,0 +1,44 @@
+﻿@page "/pokemon/{Name}"
+@using OmniDex.Models
+@using OmniDex.Services
+@inject PokeApiService PokeService
+
+<PageTitle>@(_pokemon?.Name ?? "...")</PageTitle>
+
+@if (_pokemon == null)
+{
+    <p><em>Loading details... 🔎</em></p>
+}
+else
+{
+    <div class="detail-card">
+        <h1>@_pokemon.Name.ToUpper()</h1>
+        <img src="@_pokemon.Sprites.FrontDefault" alt="@_pokemon.Name" />
+        <h3>Details</h3>
+        <p><strong>ID:</strong> @_pokemon.Id</p>
+        <p><strong>Weight:</strong> @((double)_pokemon.Weight / 10) kg</p>
+        <p><strong>Height:</strong> @((double)_pokemon.Height / 10) m</p>
+        <div>
+            <strong>Types:</strong>
+            @foreach (var typeInfo in _pokemon.Types)
+            {
+                <span class="type-badge @typeInfo.Type.Name">@typeInfo.Type.Name</span>
+            }
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public string Name { get; set; } = string.Empty;
+
+    private PokemonDetail? _pokemon;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (!string.IsNullOrEmpty(Name))
+        {
+            _pokemon = await PokeService.GetPokemonDetailsAsync(Name);
+        }
+    }
+}
