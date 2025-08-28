@@ -1,41 +1,46 @@
 ﻿@page "/pokedex"
 @rendermode InteractiveServer
+@using MudBlazor
 @using OmniDex.Services
 @using OmniDex.Models
 @inject PokeApiService PokeService
 
-<PageTitle>OmniDex</PageTitle>
+<MudText Typo="Typo.h3" GutterBottom="true">Pokedex</MudText>
 
-<h1>OmniDex</h1>
-
-<input type="text"
-       class="search-bar"
-       placeholder="Search Pokémon..."
-       @bind="searchTerm"
-       @bind:event="oninput" />
+<MudTextField T="string"
+              @bind-Value="searchTerm"
+              Label="Search Pokémon..."
+              Variant="Variant.Outlined"
+              Adornment="Adornment.Start"
+              AdornmentIcon="@Icons.Material.Filled.Search"
+              Immediate="true"
+              Class="mb-4" />
 
 @if (!_fullPokemonList.Any())
 {
-    <p><em>Loading Pokémon... ✨</em></p>
+    <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
 }
 else
 {
-    <div class="pokemon-grid">
-        @* ✅ FIX 1: Loop over the FilteredPokemon property *@
+    <MudGrid Spacing="2">
         @foreach (var pokemon in FilteredPokemon)
         {
-            <a href="/pokemon/@pokemon.Name" class="pokemon-link">
-            <div class="pokemon-card">
-                <img src="@GetPokemonImageUrl(pokemon.Url)" alt="@pokemon.Name" />
-                <h4>@pokemon.Name</h4>
-            </div>
-            </a>
+            <MudItem xs="6" sm="4" md="3" lg="2">
+                <MudCard Elevation="2" Class="pokemon-card-link">
+                    <a href="/pokemon/@pokemon.Name" style="text-decoration: none;">
+                        <MudCardMedia Image="@GetPokemonImageUrl(pokemon.Url)" Height="200" />
+                        <MudCardContent>
+                            <MudText Typo="Typo.h6" Align="Align.Center" Style="text-transform: capitalize;">@pokemon.Name</MudText>
+                        </MudCardContent>
+                    </a>
+                </MudCard>
+            </MudItem>
         }
-    </div>
+    </MudGrid>
 }
 
+
 @code {
-    // ✅ FIX 2: Simplify variables to match your service's return type
     private List<PokemonResult> _fullPokemonList = new();
     private string searchTerm = string.Empty;
 
@@ -47,7 +52,6 @@ else
             {
                 return _fullPokemonList;
             }
-            
             return _fullPokemonList
                 .Where(p => p.Name.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
                 .ToList();
@@ -62,6 +66,7 @@ else
     private string GetPokemonImageUrl(string pokemonUrl)
     {
         var pokemonId = pokemonUrl.TrimEnd('/').Split('/').Last();
-        return $"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/{pokemonId}.png";
+        // Use higher quality sprites
+        return $"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/{pokemonId}.png";
     }
 }
