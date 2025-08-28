@@ -1,54 +1,67 @@
 ﻿@page "/pokemon/{Name}"
+@rendermode InteractiveServer
 @using OmniDex.Models
+@using MudBlazor
 @using OmniDex.Services
 @inject PokeApiService PokeService
 
-<PageTitle>@(_pokemon?.Name ?? "...")</PageTitle>
-
 @if (_pokemon == null)
 {
-    <p><em>Loading details... 🔎</em></p>
+    <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
 }
 else
 {
-    <div class="detail-card">
-        <h1>@_pokemon.Name.ToUpper()</h1>
-        <img src="@_pokemon.Sprites.FrontDefault" alt="@_pokemon.Name" />
-        <h3>Details</h3>
-        <p><strong>ID:</strong> @_pokemon.Id</p>
-        <p><strong>Weight:</strong> @((double)_pokemon.Weight / 10) kg</p>
-        <p><strong>Height:</strong> @((double)_pokemon.Height / 10) m</p>
-        <div>
-            <strong>Types:</strong>
-            @foreach (var typeInfo in _pokemon.Types)
-            {
-                <span class="type-badge @typeInfo.Type.Name">@typeInfo.Type.Name</span>
-            }
-        </div>
-    </div>
-}
+    <MudPaper Elevation="3" Class="pa-4">
+        <MudGrid Justify="Justify.Center">
+            <MudItem xs="12" sm="6" Class="d-flex justify-center align-center">
+                <MudImage Src="@_pokemon.Sprites.FrontDefault" Alt="@_pokemon.Name" Width="300" />
+            </MudItem>
 
-@if (_evolutionChain.Any() && _evolutionChain.Count > 1)
-{
-    <div class="evolution-section">
-        <h3>Evolution Chain</h3>
-        <div class="evolution-chain-container">
-            @for (var i = 0; i < _evolutionChain.Count; i++)
-            {
-                var evolution = _evolutionChain[i];
-                <a href="/pokemon/@evolution.Name" class="evolution-stage">
-                    <img src="@GetPokemonImageUrl(evolution.Url)" alt="@evolution.Name" />
-                    <span>@evolution.Name</span>
-                </a>
+            <MudItem xs="12" sm="6">
+                <MudText Typo="Typo.h3" Style="@($"text-transform: capitalize; color: {GetColorForType(_pokemon.Types.FirstOrDefault()?.Type.Name)}")">
+                    @_pokemon.Name
+                </MudText>
+                <MudText Typo="Typo.h5" GutterBottom="true">#@_pokemon.Id.ToString("D3")</MudText>
+                
+                <MudText Typo="Typo.h6" Class="mt-4"><b>Type</b></MudText>
+                <MudStack Row="true">
+                    @foreach (var typeInfo in _pokemon.Types)
+                    {
+                        <MudChip T="string" Color="@GetColorForType(typeInfo.Type.Name)" Size="Size.Large">@typeInfo.Type.Name</MudChip>
+                    }
+                </MudStack>
+                
+                <MudText Typo="Typo.h6" Class="mt-4"><b>Height:</b> @((double)_pokemon.Height / 10) m</MudText>
+                <MudText Typo="Typo.h6"><b>Weight:</b> @((double)_pokemon.Weight / 10) kg</MudText>
+            </MudItem>
+        </MudGrid>
+    </MudPaper>
 
-                @if (i < _evolutionChain.Count - 1)
+    @if (_evolutionChain.Any() && _evolutionChain.Count > 1)
+    {
+        <MudPaper Elevation="3" Class="pa-4 mt-4">
+            <MudText Typo="Typo.h5" GutterBottom="true">Evolution Chain</MudText>
+            <MudStack Row="true" Justify="Justify.Center" AlignItems="AlignItems.Center" Spacing="2">
+                 @for (var i = 0; i < _evolutionChain.Count; i++)
                 {
-                    <span class="evolution-arrow">→</span>
+                    var evolution = _evolutionChain[i];
+                    <MudCard Class="text-center" Elevation="0">
+                        <a href="/pokemon/@evolution.Name">
+                            <MudImage Src="@GetPokemonImageUrl(evolution.Url)" Alt="@evolution.Name" Width="100"/>
+                        </a>
+                        <MudText Style="text-transform: capitalize;">@evolution.Name</MudText>
+                    </MudCard>
+
+                    @if (i < _evolutionChain.Count - 1)
+                    {
+                        <MudIcon Icon="@Icons.Material.Filled.ArrowForward" />
+                    }
                 }
-            }
-        </div>
-    </div>
+            </MudStack>
+        </MudPaper>
+    }
 }
+
 
 @code {
     [Parameter]
@@ -57,23 +70,46 @@ else
     private PokemonDetail? _pokemon;
     private List<PokemonResult> _evolutionChain = new();
 
-    protected override async Task OnInitializedAsync()
+    protected override async Task OnParametersSetAsync()
     {
         if (!string.IsNullOrEmpty(Name))
         {
+            _pokemon = null; // Clear previous data
+            _evolutionChain = new();
+            StateHasChanged(); // Update UI to show loading indicator
+
             var pokemonTask = PokeService.GetPokemonDetailsAsync(Name);
             var evolutionTask = PokeService.GetEvolutionChainAsync(Name);
-
             await Task.WhenAll(pokemonTask, evolutionTask);
 
             _pokemon = await pokemonTask;
             _evolutionChain = (await evolutionTask) ?? new();
         }
-
     }
+    
     private string GetPokemonImageUrl(string pokemonUrl)
     {
         var pokemonId = pokemonUrl.TrimEnd('/').Split('/').Last();
-        return $"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/{pokemonId}.png";
+        return $"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/{pokemonId}.png";
     }
+
+    private Color GetColorForType(string? type) => type?.ToLower() switch
+    {
+        "fire" => Color.Warning,
+        "water" => Color.Info,
+        "grass" => Color.Success,
+        "electric" => Color.Secondary,
+        "poison" => Color.Tertiary,
+        "bug" => Color.Success,
+        "flying" => Color.Primary,
+        "normal" => Color.Default,
+        "ground" => Color.Warning,
+        "rock" => Color.Dark,
+        "fighting" => Color.Error,
+        "psychic" => Color.Tertiary,
+        "ghost" => Color.Primary,
+        "ice" => Color.Info,
+        "dragon" => Color.Primary,
+        _ => Color.Dark
+    };
 }

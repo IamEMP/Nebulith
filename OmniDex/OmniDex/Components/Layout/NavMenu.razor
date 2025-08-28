@@ -1,24 +1,5 @@
-﻿<div class="top-row ps-3 navbar navbar-dark">
-    <div class="container-fluid">
-        <a class="navbar-brand" href="">OmniDex</a>
-    </div>
-</div>
-
-<input type="checkbox" title="Navigation menu" class="navbar-toggler"/>
-
-<div class="nav-scrollable" onclick="document.querySelector('.navbar-toggler').click()">
-    <nav class="nav flex-column">
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Home
-            </NavLink>
-        </div>
-
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="pokedex">
-                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Pokedex
-            </NavLink>
-        </div>
-
-    </nav>
-</div>
+﻿@using MudBlazor
+<MudNavMenu>
+    <MudNavLink Href="" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Home">Home</MudNavLink>
+    <MudNavLink Href="pokedex" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.CatchingPokemon">Pokedex</MudNavLink>
+</MudNavMenu>

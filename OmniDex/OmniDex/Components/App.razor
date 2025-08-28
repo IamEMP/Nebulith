@@ -2,207 +2,24 @@
 <html lang="en">
 
 <head>
-    <meta charset="utf-8"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <base href="/"/>
-    <link rel="stylesheet" href="@Assets["lib/bootstrap/dist/css/bootstrap.min.css"]"/>
-    <link rel="stylesheet" href="@Assets["app.css"]"/>
-    <link rel="stylesheet" href="@Assets["OmniDex.styles.css"]"/>
-    <ImportMap/>
-    <link rel="icon" type="image/png" href="favicon.png"/>
-    <HeadOutlet/>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <base href="/" />
+    <link rel="stylesheet" href="bootstrap/bootstrap.min.css" />
+    <link rel="stylesheet" href="app.css" />
+    <link rel="stylesheet" href="OmniDex.styles.css" />
+    <link rel="icon" type="image/png" href="favicon.png" />
+    <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap" rel="stylesheet" />
+    <link href="_content/MudBlazor/MudBlazor.min.css" rel="stylesheet" />
+
+    <HeadOutlet @rendermode="InteractiveServer" />
 </head>
 
-
-<HeadContent>
-    ...
-    <style>
-        .search-bar {
-            width: 100%;
-            padding: 0.75rem;
-            margin-bottom: 2rem;
-            font-size: 1rem;
-            border-radius: 8px;
-            border: 1px solid #ddd;
-            box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
-        }
-
-        .pokemon-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-            gap: 1rem;
-        }
-        .pokemon-card {
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            text-align: center;
-            padding: 1rem;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            transition: transform 0.2s;
-        }
-        .pokemon-card:hover {
-            transform: scale(1.05);
-        }
-        .pokemon-card img {
-            width: 96px;
-            height: 96px;
-        }
-        .pokemon-card h4 {
-            margin-top: 0.5rem;
-            text-transform: capitalize;
-        }
-
-        /* ... (keep existing styles) ... */
-        .pokemon-link {
-            text-decoration: none;
-            color: inherit;
-        }
-
-        .detail-card {
-            max-width: 400px;
-            margin: 2rem auto;
-            padding: 2rem;
-            border: 1px solid #ddd;
-            border-radius: 10px;
-            text-align: center;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-            text-transform: capitalize;
-        }
-
-            .detail-card img {
-                width: 150px;
-                height: 150px;
-            }
-
-        .type-badge {
-            display: inline-block;
-            padding: 0.25rem 0.75rem;
-            border-radius: 12px;
-            color: white;
-            margin: 0 0.25rem;
-            font-weight: bold;
-            background-color: #a8a878; /* Normal type color */
-        }
-
-            .type-badge.fire {
-                background-color: #f08030;
-            }
-
-            .type-badge.water {
-                background-color: #6890f0;
-            }
-
-            .type-badge.grass {
-                background-color: #78c850;
-            }
-
-            .type-badge.electric {
-                background-color: #f8d030;
-            }
-
-            .type-badge.ice {
-                background-color: #98d8d8;
-            }
-
-            .type-badge.fighting {
-                background-color: #c03028;
-            }
-
-            .type-badge.poison {
-                background-color: #a040a0;
-            }
-
-            .type-badge.ground {
-                background-color: #e0c068;
-            }
-
-            .type-badge.flying {
-                background-color: #a890f0;
-            }
-
-            .type-badge.psychic {
-                background-color: #f85888;
-            }
-
-            .type-badge.bug {
-                background-color: #a8b820;
-            }
-
-            .type-badge.rock {
-                background-color: #b8a038;
-            }
-
-            .type-badge.ghost {
-                background-color: #705898;
-            }
-
-            .type-badge.dragon {
-                background-color: #7038f8;
-            }
-
-            .type-badge.dark {
-                background-color: #705848;
-            }
-
-            .type-badge.steel {
-                background-color: #b8b8d0;
-            }
-
-            .type-badge.fairy {
-                background-color: #ee99ac;
-            }
-
-        /* Evoloution chart */
-        .evolution-section {
-            margin-top: 2rem;
-            padding-top: 1.5rem;
-            border-top: 1px solid #eee;
-        }
-
-        .evolution-chain-container {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 1rem;
-            flex-wrap: wrap;
-        }
-
-        .evolution-stage {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            text-decoration: none;
-            color: inherit;
-            transition: transform 0.2s;
-        }
-
-            .evolution-stage:hover {
-                transform: scale(1.1);
-            }
-
-            .evolution-stage img {
-                width: 80px;
-                height: 80px;
-            }
-
-            .evolution-stage span {
-                text-transform: capitalize;
-                font-weight: bold;
-                margin-top: 0.5rem;
-            }
-
-        .evolution-arrow {
-            font-size: 2rem;
-            color: #888;
-        }
-    </style>
-</HeadContent>
-
-
-
 <body>
-<Routes/>
-<script src="_framework/blazor.web.js"></script>
+    <Routes @rendermode="InteractiveServer" />
+
+    <script src="_framework/blazor.web.js"></script>
+    <script src="_content/MudBlazor/MudBlazor.min.js"></script>
 </body>
 
 </html>

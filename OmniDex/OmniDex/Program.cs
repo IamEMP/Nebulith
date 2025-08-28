@@ -1,4 +1,5 @@
 
+using MudBlazor.Services;
 using OmniDex.Components;
 using OmniDex.Services;
 
@@ -11,6 +12,7 @@ builder.Services.AddRazorComponents()
 
 builder.Services.AddScoped<PokeApiService>();
 builder.Services.AddHttpClient<PokeApiService>();
+builder.Services.AddMudServices();
 
 builder.Services.AddMemoryCache();
 
