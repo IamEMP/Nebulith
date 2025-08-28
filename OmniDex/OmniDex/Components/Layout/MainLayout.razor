@@ -1,7 +1,7 @@
 ﻿@inherits LayoutComponentBase
 @using MudBlazor
 
-<MudThemeProvider />
+<MudThemeProvider @bind-IsDarkMode="@_isDarkMode" Theme="_customTheme" />
 <MudDialogProvider />
 <MudSnackbarProvider />
 
@@ -10,11 +10,12 @@
         <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@((e) => DrawerToggle())" />
         <MudText Typo="Typo.h5" Class="ml-3">OmniDex</MudText>
         <MudSpacer />
-        <MudIconButton Icon="@Icons.Material.Filled.MoreVert" Color="Color.Inherit" Edge="Edge.End" />
     </MudAppBar>
+    
     <MudDrawer @bind-Open="_drawerOpen" Elevation="2" Variant="@DrawerVariant.Mini">
         <NavMenu />
     </MudDrawer>
+    
     <MudMainContent Class="pt-16 px-4">
         <MudContainer MaxWidth="MaxWidth.Large">
             @Body
@@ -23,10 +24,26 @@
 </MudLayout>
 
 @code {
+    
+    private bool _isDarkMode = true;
     private bool _drawerOpen = true;
 
     private void DrawerToggle()
     {
         _drawerOpen = !_drawerOpen;
     }
+
+    private MudTheme _customTheme = new MudTheme()
+    {
+        PaletteDark = new PaletteDark()
+        {
+            Surface = "#30343f",
+            Background = "#242730",
+            AppbarBackground = "#30343f",
+            DrawerBackground = "#30343f",
+            Primary = Colors.Blue.Accent3,
+            TextPrimary = "rgba(255,255,255, 0.87)",
+            TextSecondary = "rgba(255,255,255, 0.60)"
+        }
+    };
 }
