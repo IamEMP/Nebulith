@@ -1,9 +1,11 @@
 ﻿@page "/pokedex"
 @rendermode InteractiveServer
+@inject PokeApiService PokeService
+
 @using MudBlazor
 @using OmniDex.Services
 @using OmniDex.Models
-@inject PokeApiService PokeService
+
 
 <MudText Typo="Typo.h3" GutterBottom="true">Pokedex</MudText>
 

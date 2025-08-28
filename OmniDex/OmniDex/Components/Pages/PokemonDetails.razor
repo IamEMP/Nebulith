@@ -1,9 +1,11 @@
 ﻿@page "/pokemon/{Name}"
 @rendermode InteractiveServer
+@inject PokeApiService PokeService
+
 @using OmniDex.Models
 @using MudBlazor
 @using OmniDex.Services
-@inject PokeApiService PokeService
+
 
 @if (_pokemon == null)
 {
