@@ -1,10 +1,11 @@
 ﻿@page "/pokemon/{Name}"
 @rendermode InteractiveServer
-@inject PokeApiService PokeService
+@inject PokemonRepository PokeRepo
 
 @using OmniDex.Models
 @using MudBlazor
 @using OmniDex.Services
+@using OmniDex.Repositories
 
 
 @if (_pokemon == null)
@@ -78,10 +79,10 @@ else
         {
             _pokemon = null; // Clear previous data
             _evolutionChain = new();
-            StateHasChanged(); // Update UI to show loading indicator
+            StateHasChanged(); 
 
-            var pokemonTask = PokeService.GetPokemonDetailsAsync(Name);
-            var evolutionTask = PokeService.GetEvolutionChainAsync(Name);
+            var pokemonTask = PokeRepo.GetPokemonDetailsAsync(Name);
+            var evolutionTask = PokeRepo.GetEvolutionChainAsync(Name);
             await Task.WhenAll(pokemonTask, evolutionTask);
 
             _pokemon = await pokemonTask;

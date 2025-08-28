@@ -1,6 +1,10 @@
-<Project Sdk="Microsoft.NET.Sdk.BlazorWebAssembly">
+﻿<Project Sdk="Microsoft.NET.Sdk.BlazorWebAssembly">
 <ItemGroup>
-  <PackageReference Include="MudBlazor" Version="6.11.2" />
+  <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.8">
+    <PrivateAssets>all</PrivateAssets>
+    <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+  </PackageReference>
+  <PackageReference Include="MudBlazor" Version="8.11.0" />
 </ItemGroup>
     <PropertyGroup>
         <TargetFramework>net9.0</TargetFramework>

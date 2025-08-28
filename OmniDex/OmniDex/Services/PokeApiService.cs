@@ -123,5 +123,36 @@ namespace OmniDex.Services
                 return null;
             }
         }
+        public async Task<List<PokemonResult>?> GetAllPokemonListAsync()
+        {
+            // Fetches all pokemon. In 2025, there are around 1302.
+            var response = await _httpClient.GetFromJsonAsync<PokemonListResponse>($"{BaseUrl}/pokemon?limit=1500");
+            return response?.Results;
+        }
+
+        public async Task<PokemonSpecies?> GetPokemonSpeciesAsync(string name)
+        {
+            var cacheKey = $"species-{name.ToLower()}";
+            if (_cache.TryGetValue(cacheKey, out PokemonSpecies? cachedSpecies))
+            {
+                return cachedSpecies;
+            }
+
+            try
+            {
+                var species = await _httpClient.GetFromJsonAsync<PokemonSpecies>($"{BaseUrl}/pokemon-species/{name.ToLower()}");
+                if (species != null)
+                {
+                    var cacheEntryOptions = new MemoryCacheEntryOptions().SetSlidingExpiration(TimeSpan.FromDays(30));
+                    _cache.Set(cacheKey, species, cacheEntryOptions);
+                }
+                return species;
+            }
+            catch (HttpRequestException)
+            {
+                return null;
+            }
+        }
     }
+
 }

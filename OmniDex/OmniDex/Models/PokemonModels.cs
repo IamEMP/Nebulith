@@ -1,4 +1,5 @@
-﻿using System.Text.Json.Serialization;
+﻿using System;
+using System.Text.Json.Serialization;
 
 namespace OmniDex.Models
 {
@@ -62,6 +63,9 @@ namespace OmniDex.Models
     {
         [JsonPropertyName("evolution_chain")]
         public EvolutionChainUrl EvolutionChain { get; set; } = new();
+
+        [JsonPropertyName("generation")]
+        public GenerationInfo Generation { get; set; } = new();
     }
 
     public class EvolutionChainUrl
@@ -85,5 +89,11 @@ namespace OmniDex.Models
 
         [JsonPropertyName("evolves_to")]
         public List<ChainLink> EvolvesTo { get; set; } = new();
+    }
+
+    public class GenerationInfo
+    {
+        [JsonPropertyName("name")]
+        public string Name { get; set; } = string.Empty;
     }
 }
