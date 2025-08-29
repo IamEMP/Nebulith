@@ -6,6 +6,7 @@
 @using MudBlazor
 @using OmniDex.Services
 @using OmniDex.Repositories
+@using MudBlazor.Utilities
 
 
 @if (_pokemon == null)
@@ -30,7 +31,7 @@ else
                 <MudStack Row="true">
                     @foreach (var typeInfo in _pokemon.Types)
                     {
-                        <MudChip T="string" Color="@GetColorForType(typeInfo.Type.Name)" Size="Size.Large">@typeInfo.Type.Name</MudChip>
+                        <MudChip T="string" Style="@($"background-color: {GetColorForType(typeInfo.Type.Name)}")"  Size="Size.Large">@typeInfo.Type.Name</MudChip>
                     }
                 </MudStack>
                 
@@ -79,7 +80,7 @@ else
         {
             _pokemon = null; // Clear previous data
             _evolutionChain = new();
-            StateHasChanged(); 
+            StateHasChanged();
 
             var pokemonTask = PokeRepo.GetPokemonDetailsAsync(Name);
             var evolutionTask = PokeRepo.GetEvolutionChainAsync(Name);
@@ -96,23 +97,24 @@ else
         return $"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/{pokemonId}.png";
     }
 
-    private Color GetColorForType(string? type) => type?.ToLower() switch
+    private string GetColorForType(string? type) => type?.ToLower() switch
     {
-        "fire" => Color.Warning,
-        "water" => Color.Info,
-        "grass" => Color.Success,
-        "electric" => Color.Secondary,
-        "poison" => Color.Tertiary,
-        "bug" => Color.Success,
-        "flying" => Color.Primary,
-        "normal" => Color.Default,
-        "ground" => Color.Warning,
-        "rock" => Color.Dark,
-        "fighting" => Color.Error,
-        "psychic" => Color.Tertiary,
-        "ghost" => Color.Primary,
-        "ice" => Color.Info,
-        "dragon" => Color.Primary,
-        _ => Color.Dark
+        "fire" => "#EE8130",
+        "water" => "#6390F0",
+        "grass" => "#7AC74C",
+        "electric" => "#F7D02C",
+        "poison" => "#A33EA1",
+        "bug" => "#A6B91A",
+        "flying" => "#A98FF3",
+        "normal" => "#A8A77A",
+        "ground" => "#E2BF65",
+        "rock" => "#B6A136",
+        "fighting" => "#C22E28",
+        "psychic" => "#F95587",
+        "ghost" => "#866db6",
+        "ice" => "#96D9D6",
+        "dragon" => "#F1B46D",
+        "fairy" => "#D685AD",
+        _ => "",
     };
 }
