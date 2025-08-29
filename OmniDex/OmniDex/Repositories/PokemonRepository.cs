@@ -118,40 +118,34 @@ public class PokemonRepository
         return apiPokemonDetail;
     }
 
-    // ✅ Adding this method back
-    public async Task<List<PokemonResult>> GetEvolutionChainAsync(string pokemonName)
+    public async Task<List<EvolutionStage>?> GetEvolutionChainAsync(string pokemonName)
     {
-        var pokemonInDb = await _dbContext.Pokemons.FirstOrDefaultAsync(p => p.Name.ToLower() == pokemonName.ToLower());
-
-        if (pokemonInDb != null && !string.IsNullOrEmpty(pokemonInDb.EvolutionChainIds) && pokemonInDb.LastUpdated >= DateTime.UtcNow.AddDays(-14))
-        {
-            var evolutionIds = pokemonInDb.EvolutionChainIds.Split(',').Select(int.Parse).ToList();
-            var chainEntities = await _dbContext.Pokemons
-                .Where(p => evolutionIds.Contains(p.Id))
-                .ToListAsync();
-
-            return chainEntities.OrderBy(p => evolutionIds.IndexOf(p.Id))
-                .Select(p => new PokemonResult { Name = p.Name, Url = $"https://pokeapi.co/api/v2/pokemon/{p.Id}/" })
-                .ToList();
-        }
-
+        // We will always go to the service for the rich details, as it's memory-cached.
+        // The database doesn't store the formatted trigger text.
         var apiEvolutionChain = await _apiService.GetEvolutionChainAsync(pokemonName);
+
         if (apiEvolutionChain == null || !apiEvolutionChain.Any())
         {
-            return new List<PokemonResult>();
+            return new List<EvolutionStage>();
         }
 
-        var ids = apiEvolutionChain.Select(p => int.Parse(p.Url.TrimEnd('/').Split('/').Last())).ToList();
-        var idString = string.Join(",", ids);
+        
+        var pokemonInDb = await _dbContext.Pokemons.FirstOrDefaultAsync(p => p.Name.ToLower() == pokemonName.ToLower());
 
-        var entitiesToUpdate = await _dbContext.Pokemons.Where(p => ids.Contains(p.Id)).ToListAsync();
-        foreach (var entity in entitiesToUpdate)
+        // Only update the DB if the chain info is missing
+        if (pokemonInDb != null && string.IsNullOrEmpty(pokemonInDb.EvolutionChainIds))
         {
-            entity.EvolutionChainIds = idString;
-            entity.LastUpdated = DateTime.UtcNow;
-        }
+            var ids = apiEvolutionChain.Select(p => int.Parse(p.Pokemon.Url.TrimEnd('/').Split('/').Last())).ToList();
+            var idString = string.Join(",", ids);
 
-        await _dbContext.SaveChangesAsync();
+            var entitiesToUpdate = await _dbContext.Pokemons.Where(p => ids.Contains(p.Id)).ToListAsync();
+            foreach (var entity in entitiesToUpdate)
+            {
+                entity.EvolutionChainIds = idString;
+                entity.LastUpdated = DateTime.UtcNow;
+            }
+            await _dbContext.SaveChangesAsync();
+        }
 
         return apiEvolutionChain;
     }

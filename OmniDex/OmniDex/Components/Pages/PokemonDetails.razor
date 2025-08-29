@@ -1,6 +1,7 @@
 ﻿@page "/pokemon/{Name}"
 @rendermode InteractiveServer
 @inject PokemonRepository PokeRepo
+@inject PokeApiService PokeApiService
 
 @using OmniDex.Models
 @using MudBlazor
@@ -45,21 +46,26 @@ else
     {
         <MudPaper Elevation="3" Class="pa-4 mt-4">
             <MudText Typo="Typo.h5" GutterBottom="true">Evolution Chain</MudText>
-            <MudStack Row="true" Justify="Justify.Center" AlignItems="AlignItems.Center" Spacing="2">
-                 @for (var i = 0; i < _evolutionChain.Count; i++)
-                {
-                    var evolution = _evolutionChain[i];
-                    <MudCard Class="text-center" Elevation="0">
-                        <a href="/pokemon/@evolution.Name">
-                            <MudImage Src="@GetPokemonImageUrl(evolution.Url)" Alt="@evolution.Name" Width="100"/>
-                        </a>
-                        <MudText Style="text-transform: capitalize;">@evolution.Name</MudText>
-                    </MudCard>
 
-                    @if (i < _evolutionChain.Count - 1)
+            <MudStack Row="true" Justify="Justify.Center" AlignItems="AlignItems.Center" Spacing="2" Wrap="Wrap.Wrap">
+                @foreach (var (stage, i) in _evolutionChain.Select((value, index) => (value, index)))
+                {
+                    @* If this is NOT the first Pokemon, display the arrow and trigger text first *@
+                    @if (i > 0)
                     {
-                        <MudIcon Icon="@Icons.Material.Filled.ArrowForward" />
+                        <div class="d-flex flex-column align-center">
+                            <MudText Typo="Typo.body2" Style="text-transform: capitalize;">@stage.TriggerText</MudText>
+                            <MudIcon Icon="@Icons.Material.Filled.ArrowForward" />
+                        </div>
                     }
+
+                    @* Then, display the Pokemon's card *@
+                    <MudCard Class="text-center" Elevation="0">
+                        <a href="/pokemon/@stage.Pokemon.Name">
+                            <MudImage Src="@GetPokemonImageUrl(stage.Pokemon.Url)" Alt="@stage.Pokemon.Name" Width="100" />
+                        </a>
+                        <MudText Style="text-transform: capitalize;">@stage.Pokemon.Name</MudText>
+                    </MudCard>
                 }
             </MudStack>
         </MudPaper>
@@ -72,18 +78,19 @@ else
     public string Name { get; set; } = string.Empty;
 
     private PokemonDetail? _pokemon;
-    private List<PokemonResult> _evolutionChain = new();
+    private List<EvolutionStage> _evolutionChain = new();
 
     protected override async Task OnParametersSetAsync()
     {
         if (!string.IsNullOrEmpty(Name))
         {
-            _pokemon = null; // Clear previous data
+            _pokemon = null;
             _evolutionChain = new();
             StateHasChanged();
 
             var pokemonTask = PokeRepo.GetPokemonDetailsAsync(Name);
-            var evolutionTask = PokeRepo.GetEvolutionChainAsync(Name);
+            // Calling the API service directly to get the rich evolution details
+            var evolutionTask = PokeApiService.GetEvolutionChainAsync(Name);
             await Task.WhenAll(pokemonTask, evolutionTask);
 
             _pokemon = await pokemonTask;
@@ -113,7 +120,7 @@ else
         "psychic" => "#F95587",
         "ghost" => "#866db6",
         "ice" => "#96D9D6",
-        "dragon" => "#F1B46D",
+        "dragon" => "#6F35FC",
         "fairy" => "#D685AD",
         _ => "",
     };

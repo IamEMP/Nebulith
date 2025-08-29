@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Caching.Memory;
 using OmniDex.Models;
+using Microsoft.Extensions.Logging;
 
 namespace OmniDex.Services
 {
@@ -8,8 +9,9 @@ namespace OmniDex.Services
         private readonly HttpClient _httpClient;
         private const string BaseUrl = "https://pokeapi.co/api/v2";
         private readonly IMemoryCache _cache;
+        private readonly ILogger<PokeApiService> _logger = null!;
 
-        public PokeApiService(HttpClient httpClient, IMemoryCache cache)
+        public PokeApiService(HttpClient httpClient, IMemoryCache cache, ILogger<PokeApiService> logger)
         {
             _httpClient = httpClient;
             _cache = cache;
@@ -72,56 +74,73 @@ namespace OmniDex.Services
                 return null;
             }
         }
-        // In Services/PokeApiService.cs
 
-        public async Task<List<PokemonResult>?> GetEvolutionChainAsync(string pokemonName)
+        public async Task<List<EvolutionStage>?> GetEvolutionChainAsync(string pokemonName)
         {
-            var cacheKey = $"evolution-{pokemonName.ToLower()}";
+            var cacheKey = $"evolution-details-{pokemonName.ToLower()}";
 
-            // Check the cache first
-            if (_cache.TryGetValue(cacheKey, out List<PokemonResult>? cachedChain))
+            if (_cache.TryGetValue(cacheKey, out List<EvolutionStage>? cachedChain))
             {
                 return cachedChain;
             }
 
             try
             {
-                // Get the species data to find the evolution chain URL
                 var speciesUrl = $"{BaseUrl}/pokemon-species/{pokemonName.ToLower()}";
                 var speciesData = await _httpClient.GetFromJsonAsync<PokemonSpecies>(speciesUrl);
-                if (speciesData == null || string.IsNullOrEmpty(speciesData.EvolutionChain.Url))
-                {
-                    return null;
-                }
+                if (speciesData == null || string.IsNullOrEmpty(speciesData.EvolutionChain.Url)) return null;
 
-                // Get the actual evolution chain data from the URL
                 var evolutionData = await _httpClient.GetFromJsonAsync<EvolutionChainResponse>(speciesData.EvolutionChain.Url);
-                if (evolutionData == null)
-                {
-                    return null;
-                }
+                if (evolutionData == null) return null;
 
-                // Process the nested data into a flat list
-                var evolutionChain = new List<PokemonResult>();
+                var evolutionChain = new List<EvolutionStage>();
                 var currentLink = evolutionData.Chain;
-                do
-                {
-                    evolutionChain.Add(currentLink.Species);
-                    currentLink = currentLink.EvolvesTo.FirstOrDefault();
-                } while (currentLink != null);
 
-                // Cache the result
-                var cacheEntryOptions = new MemoryCacheEntryOptions()
-                    .SetAbsoluteExpiration(TimeSpan.FromHours(24));
+                // Use a recursive helper function to parse the chain
+                ParseChain(currentLink, evolutionChain);
+
+                var cacheEntryOptions = new MemoryCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromDays(30));
                 _cache.Set(cacheKey, evolutionChain, cacheEntryOptions);
 
                 return evolutionChain;
             }
             catch (HttpRequestException ex)
             {
-                Console.WriteLine($"Error fetching evolution chain for {pokemonName}: {ex.Message}");
+                _logger.LogError(ex, "Error fetching evolution chain for {PokemonName}", pokemonName);
                 return null;
             }
+        }
+
+        // This helper function recursively walks the chain and formats the trigger text
+        private void ParseChain(ChainLink link, List<EvolutionStage> stages)
+        {
+            if (link == null) return;
+
+            stages.Add(new EvolutionStage
+            {
+                Pokemon = link.Species,
+                // The first Pokémon in the chain has no trigger, but its evolutions do.
+                TriggerText = FormatEvolutionTrigger(link.EvolutionDetails.FirstOrDefault())
+            });
+
+            foreach (var nextLink in link.EvolvesTo)
+            {
+                ParseChain(nextLink, stages);
+            }
+        }
+
+        // This helper creates the user-friendly text like "Level 16" or "Use Fire Stone"
+        private string FormatEvolutionTrigger(EvolutionDetail? detail)
+        {
+            if (detail == null) return string.Empty;
+
+            return detail.Trigger.Name.Replace("-", " ") switch
+            {
+                "level up" when detail.MinLevel.HasValue => $"Level {detail.MinLevel}",
+                "use item" when detail.Item != null => $"Use {detail.Item.Name.Replace("-", " ")}",
+                "trade" => "Trade",
+                _ => $"By {detail.Trigger.Name.Replace("-", " ")}"
+            };
         }
         public async Task<List<PokemonResult>?> GetAllPokemonListAsync()
         {
