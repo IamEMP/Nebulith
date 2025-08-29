@@ -85,15 +85,49 @@ namespace OmniDex.Models
     public class ChainLink
     {
         [JsonPropertyName("species")]
-        public PokemonResult Species { get; set; } = new(); // We can reuse PokemonResult here!
+        public PokemonResult Species { get; set; } = new();
 
         [JsonPropertyName("evolves_to")]
         public List<ChainLink> EvolvesTo { get; set; } = new();
+
+        [JsonPropertyName("evolution_details")]
+        public List<EvolutionDetail> EvolutionDetails { get; set; } = new();
     }
 
     public class GenerationInfo
     {
         [JsonPropertyName("name")]
         public string Name { get; set; } = string.Empty;
+    }
+
+
+    public class EvolutionDetail
+    {
+        [JsonPropertyName("min_level")]
+        public int? MinLevel { get; set; }
+
+        [JsonPropertyName("item")]
+        public ItemInfo? Item { get; set; }
+
+        [JsonPropertyName("trigger")]
+        public TriggerInfo Trigger { get; set; } = new();
+    }
+
+    public class ItemInfo
+    {
+        [JsonPropertyName("name")]
+        public string Name { get; set; } = string.Empty;
+    }
+
+    public class TriggerInfo
+    {
+        [JsonPropertyName("name")]
+        public string Name { get; set; } = string.Empty;
+    }
+
+    public class EvolutionStage
+    {
+        public PokemonResult Pokemon { get; set; } = new();
+        public string TriggerText { get; set; } = string.Empty;
     }
 }
