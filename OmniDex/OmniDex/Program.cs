@@ -5,6 +5,7 @@ using OmniDex.Components;
 using OmniDex.Data;
 using OmniDex.Repositories;
 using OmniDex.Services;
+using OmniDex.State;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -19,6 +20,7 @@ builder.Services.AddDbContext<PokedexDbContext>(options =>
     options.UseSqlite("Data Source=pokedex.db"));
 builder.Services.AddMemoryCache();
 builder.Services.AddScoped<PokemonRepository>();
+builder.Services.AddScoped<PokedexStateService>();
 
 
 var app = builder.Build();
