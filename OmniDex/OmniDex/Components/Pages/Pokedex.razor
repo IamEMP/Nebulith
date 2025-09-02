@@ -1,9 +1,12 @@
 ﻿@page "/pokedex"
 @rendermode InteractiveServer
 @inject PokemonRepository PokeRepo
+@inject PokedexStateService PokedexState
+
 
 @using OmniDex.Data
 @using OmniDex.Repositories
+@using OmniDex.State
 @using MudBlazor
 
 
@@ -25,8 +28,8 @@
 }
 else
 {
-    @* --- This section now uses MudTabs for both navigation and display --- *@
-    <MudTabs Elevation="2" Rounded="true" PanelClass="pa-4" Color="Color.Secondary" Centered="true">
+    <MudTabs Elevation="2" Rounded="true" PanelClass="pa-4" Color="Color.Secondary" Centered="true"
+             @bind-ActivePanelIndex="ActivePanelIndex">
         @foreach (var generationGroup in FilteredAndGroupedPokemon)
         {
             <MudTabPanel Text="@($"Gen {IntegerToRoman(generationGroup.Key)}")">
@@ -61,7 +64,18 @@ else
     private List<PokemonEntity> _fullPokemonList = new();
     private string searchTerm = string.Empty;
 
-    // This property now prepares all the data for the MudTabs component
+    private int ActivePanelIndex
+    {
+        get => PokedexState.LastActiveTabIndex;
+        set
+        {
+            if (PokedexState.LastActiveTabIndex != value)
+            {
+                PokedexState.LastActiveTabIndex = value;
+            }
+        }
+    }
+
     private IEnumerable<IGrouping<int, PokemonEntity>> FilteredAndGroupedPokemon
     {
         get
