@@ -1,0 +1,110 @@
+﻿@page "/pokedex"
+@rendermode InteractiveServer
+@inject PokemonRepository PokeRepo
+@inject PokedexStateService PokedexState
+
+
+@using Nebulith.Data
+@using Nebulith.Repositories
+@using Nebulith.State
+@using MudBlazor
+
+
+<MudText Typo="Typo.h3" GutterBottom="true">Pokedex</MudText>
+
+<MudTextField T="string"
+              @bind-Value="searchTerm"
+              Label="Search Pokémon..."
+              Variant="Variant.Outlined"
+              Adornment="Adornment.Start"
+              AdornmentIcon="@Icons.Material.Filled.Search"
+              Immediate="true"
+              Class="mb-4" />
+
+@if (!_fullPokemonList.Any())
+{
+    <MudText Class="mb-4">Loading Pokémon database...</MudText>
+    <MudProgressLinear Color="Color.Primary" Indeterminate="true" Class="my-4" />
+}
+else
+{
+    <MudTabs Elevation="2" Rounded="true" PanelClass="pa-4" Color="Color.Secondary" Centered="true"
+             @bind-ActivePanelIndex="ActivePanelIndex">
+        @foreach (var generationGroup in FilteredAndGroupedPokemon)
+        {
+            <MudTabPanel Text="@($"Gen {IntegerToRoman(generationGroup.Key)}")">
+                <MudGrid Spacing="2">
+                    @foreach (var pokemon in generationGroup)
+                    {
+                        <MudItem xs="6" sm="4" md="3" lg="2">
+                            <MudCard Elevation="2">
+                                <a href="/pokemon/@pokemon.Name" style="text-decoration: none;">
+                                    <MudCardMedia Image="@GetPokemonImageUrl(pokemon.Id)" Height="200" />
+                                    <MudCardContent>
+                                        <MudText Typo="Typo.h6" Align="Align.Center" Style="text-transform: capitalize;">@pokemon.Name</MudText>
+                                        <MudText Typo="Typo.body2" Align="Align.Center">#@pokemon.Id.ToString("D3")</MudText>
+                                    </MudCardContent>
+                                </a>
+                            </MudCard>
+                        </MudItem>
+                    }
+                </MudGrid>
+            </MudTabPanel>
+        }
+    </MudTabs>
+
+    @if (!string.IsNullOrWhiteSpace(searchTerm) && !FilteredAndGroupedPokemon.Any())
+    {
+        <MudText Align="Align.Center" Class="mt-8">No Pokémon found matching your search.</MudText>
+    }
+}
+
+
+@code {
+    private List<PokemonEntity> _fullPokemonList = new();
+    private string searchTerm = string.Empty;
+
+    private int ActivePanelIndex
+    {
+        get => PokedexState.LastActiveTabIndex;
+        set
+        {
+            if (PokedexState.LastActiveTabIndex != value)
+            {
+                PokedexState.LastActiveTabIndex = value;
+            }
+        }
+    }
+
+    private IEnumerable<IGrouping<int, PokemonEntity>> FilteredAndGroupedPokemon
+    {
+        get
+        {
+            var filtered = _fullPokemonList;
+            if (!string.IsNullOrWhiteSpace(searchTerm))
+            {
+                filtered = _fullPokemonList
+                    .Where(p => p.Name.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) || p.Id.ToString() == searchTerm)
+                    .ToList();
+            }
+            return filtered.GroupBy(p => p.GenerationId).OrderBy(g => g.Key);
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        _fullPokemonList = await PokeRepo.GetPokemonListAsync() ?? new List<PokemonEntity>();
+    }
+
+    private string GetPokemonImageUrl(int pokemonId)
+    {
+        return $"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/{pokemonId}.png";
+    }
+
+    private string IntegerToRoman(int number)
+    {
+        if (number < 1 || number > 10) return number.ToString();
+        string[] romanNumerals = { "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X" };
+        return romanNumerals[number - 1];
+    }
+}

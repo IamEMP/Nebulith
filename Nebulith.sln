@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.36414.22
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Nebulith", "Nebulith\Nebulith\Nebulith.csproj", "{62E5748E-E715-4D5B-B3A6-C85290185DCE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Nebulith.Client", "Nebulith\Nebulith.Client\Nebulith.Client.csproj", "{B5516293-FCCA-4E07-87FD-111791B2A6E9}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{62E5748E-E715-4D5B-B3A6-C85290185DCE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{62E5748E-E715-4D5B-B3A6-C85290185DCE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{62E5748E-E715-4D5B-B3A6-C85290185DCE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{62E5748E-E715-4D5B-B3A6-C85290185DCE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B5516293-FCCA-4E07-87FD-111791B2A6E9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B5516293-FCCA-4E07-87FD-111791B2A6E9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B5516293-FCCA-4E07-87FD-111791B2A6E9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B5516293-FCCA-4E07-87FD-111791B2A6E9}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {DAEE7EFF-1FBF-4F5E-958A-73CE3E42C148}
+	EndGlobalSection
+EndGlobal
