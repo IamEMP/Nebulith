@@ -147,10 +147,10 @@ else
             _pokemon = await pokemonTask;
             _evolutionChain = (await evolutionTask) ?? new();
 
-            // ✅ THIS SECTION WAS MISSING/INCOMPLETE
+           
             if (_pokemon != null && _pokemon.FlavorTexts.Any())
             {
-                // This line populates the language dropdown
+               
                 _availableLanguages = _pokemon.FlavorTexts.Select(e => e.Language.Name).Distinct().OrderBy(l => l).ToList();
                 
                 // This line sets the default language
