@@ -26,6 +26,9 @@ namespace OmniDex.Migrations
                     b.Property<string>("EvolutionChainIds")
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("FlavorTextsJson")
+                        .HasColumnType("TEXT");
+
                     b.Property<int>("GenerationId")
                         .HasColumnType("INTEGER");
 

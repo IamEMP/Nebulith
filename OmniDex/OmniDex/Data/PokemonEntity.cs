@@ -16,9 +16,11 @@ public class PokemonEntity
 
     public string? EvolutionChainIds { get; set; }
 
+    public string? FlavorTextsJson { get; set; }
+
     public int GenerationId { get; set; }
 
-    // For the 2-week refresh logic
+    // 2-week refresh logic
     public DateTime LastUpdated { get; set; }
 
 }

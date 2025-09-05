@@ -75,14 +75,14 @@ public class PokemonRepository
         await _dbContext.SaveChangesAsync();
         _logger.LogInformation("Database seeding complete!");
     }
-
-    // ✅ Adding this method back
     public async Task<PokemonDetail?> GetPokemonDetailsAsync(string name)
     {
         var pokemonInDb = await _dbContext.Pokemons.FirstOrDefaultAsync(p => p.Name.ToLower() == name.ToLower());
 
-        if (pokemonInDb != null && pokemonInDb.Height.HasValue && pokemonInDb.LastUpdated >= DateTime.UtcNow.AddDays(-14))
+        // Check if we have details (including flavor text) and if they are fresh
+        if (pokemonInDb != null && pokemonInDb.Height.HasValue && !string.IsNullOrEmpty(pokemonInDb.FlavorTextsJson))
         {
+            // Details are in DB, map to the detail model and return
             return new PokemonDetail
             {
                 Id = pokemonInDb.Id,
@@ -90,19 +90,34 @@ public class PokemonRepository
                 Height = pokemonInDb.Height.Value,
                 Weight = pokemonInDb.Weight ?? 0,
                 Sprites = new SpriteInfo { FrontDefault = pokemonInDb.ImageUrl ?? "" },
-                Types = JsonSerializer.Deserialize<List<TypeInfo>>(pokemonInDb.TypesJson ?? "[]") ?? new()
+                Types = JsonSerializer.Deserialize<List<TypeInfo>>(pokemonInDb.TypesJson ?? "[]") ?? new(),
+                FlavorTexts = JsonSerializer.Deserialize<List<FlavorTextEntry>>(pokemonInDb.FlavorTextsJson ?? "[]") ?? new()
             };
         }
 
+        // Details are missing or stale, fetch from API
         var apiPokemonDetail = await _apiService.GetPokemonDetailsAsync(name);
-        if (apiPokemonDetail == null) return null;
+        var apiSpeciesDetail = await _apiService.GetPokemonSpeciesAsync(name);
+
+        if (apiPokemonDetail == null || apiSpeciesDetail == null) return null;
+
+        // English flavor text entries
+        var englishFlavorTexts = apiSpeciesDetail.FlavorTextEntries
+            .Where(entry => entry.Language.Name == "en")
+            .GroupBy(entry => entry.Version.Name) // Group by game version
+            .Select(group => group.First()) // Select the first entry for each game to avoid duplicates
+            .ToList();
+
+        apiPokemonDetail.FlavorTexts = englishFlavorTexts;
 
         var entityToUpdate = pokemonInDb ?? new PokemonEntity { Id = apiPokemonDetail.Id, Name = apiPokemonDetail.Name };
 
+        // Update entity with all details
         entityToUpdate.Height = apiPokemonDetail.Height;
         entityToUpdate.Weight = apiPokemonDetail.Weight;
         entityToUpdate.ImageUrl = apiPokemonDetail.Sprites.FrontDefault;
         entityToUpdate.TypesJson = JsonSerializer.Serialize(apiPokemonDetail.Types);
+        entityToUpdate.FlavorTextsJson = JsonSerializer.Serialize(englishFlavorTexts); // Save descriptions to DB
         entityToUpdate.LastUpdated = DateTime.UtcNow;
 
         if (pokemonInDb == null)

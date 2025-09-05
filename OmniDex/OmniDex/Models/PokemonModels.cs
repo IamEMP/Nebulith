@@ -39,6 +39,8 @@ namespace OmniDex.Models
 
         [JsonPropertyName("types")]
         public List<TypeInfo> Types { get; set; } = [];
+
+        public List<FlavorTextEntry> FlavorTexts { get; set; } = new();
     }
 
     public class SpriteInfo
@@ -66,6 +68,9 @@ namespace OmniDex.Models
 
         [JsonPropertyName("generation")]
         public GenerationInfo Generation { get; set; } = new();
+
+        [JsonPropertyName("flavor_text_entries")]
+        public List<FlavorTextEntry> FlavorTextEntries { get; set; } = new();
     }
 
     public class EvolutionChainUrl
@@ -130,4 +135,30 @@ namespace OmniDex.Models
         public PokemonResult Pokemon { get; set; } = new();
         public string TriggerText { get; set; } = string.Empty;
     }
+    public class FlavorTextEntry
+    {
+        [JsonPropertyName("flavor_text")]
+        public string FlavorText { get; set; } = string.Empty;
+
+        [JsonPropertyName("language")]
+        public LanguageInfo Language { get; set; } = new();
+
+        [JsonPropertyName("version")]
+        public VersionInfo Version { get; set; } = new();
+    }
+
+    public class LanguageInfo
+    {
+        [JsonPropertyName("name")]
+        public string Name { get; set; } = string.Empty;
+    }
+
+    public class VersionInfo
+    {
+        [JsonPropertyName("name")]
+        public string Name { get; set; } = string.Empty;
+    }
+
+    
+
 }
