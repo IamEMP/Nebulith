@@ -11,7 +11,7 @@ using OmniDex.Data;
 namespace OmniDex.Migrations
 {
     [DbContext(typeof(PokedexDbContext))]
-    [Migration("20250905140056_InitialCreate")]
+    [Migration("20250905151953_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />

@@ -1,14 +1,12 @@
 ﻿@page "/pokemon/{Name}"
 @rendermode InteractiveServer
+@using OmniDex.Repositories
+@using OmniDex.Models
+@using OmniDex.Services
+@using MudBlazor
+
 @inject PokemonRepository PokeRepo
 @inject PokeApiService PokeApiService
-
-@using OmniDex.Models
-@using MudBlazor
-@using OmniDex.Services
-@using OmniDex.Repositories
-@using MudBlazor.Utilities
-
 
 @if (_pokemon == null)
 {
@@ -32,7 +30,7 @@ else
                 <MudStack Row="true">
                     @foreach (var typeInfo in _pokemon.Types)
                     {
-                        <MudChip T="string" Style="@($"background-color: {GetColorForType(typeInfo.Type.Name)}")"  Size="Size.Large">@typeInfo.Type.Name</MudChip>
+                        <MudChip T="string" Style="@($"background-color: {GetColorForType(typeInfo.Type.Name)}; color: white;")" Size="Size.Large">@typeInfo.Type.Name</MudChip>
                     }
                 </MudStack>
                 
@@ -69,34 +67,44 @@ else
                 }
             </MudStack>
         </MudPaper>
-
-        @if (_pokemon.FlavorTexts.Any())
-        {
-            <MudPaper Elevation="3" Class="pa-4 mt-4">
-                <MudText Typo="Typo.h5" GutterBottom="true">Pokédex Entries</MudText>
-
-                <MudSelect T="FlavorTextEntry" @bind-Value="_selectedFlavorText" Label="Select Game Version" Variant="Variant.Outlined">
-                    @foreach (var entry in _pokemon.FlavorTexts)
-                    {
-                        <MudSelectItem T="FlavorTextEntry" Value="entry">
-                            <span style="text-transform: capitalize;">@entry.Version.Name</span>
-                        </MudSelectItem>
-                    }
-                </MudSelect>
-
-                
-                @if (_selectedFlavorText != null)
-                {
-                    <MudText Typo="Typo.body1" Class="mt-4">
-                        @_selectedFlavorText.FlavorText.Replace("\n", " ").Replace("\f", " ")
-                    </MudText>
-                }
-            </MudPaper>
-        }
     }
 
-    }
+    @if (_pokemon.FlavorTexts.Any())
+    {
+        <MudPaper Elevation="3" Class="pa-4 mt-4">
+            <MudText Typo="Typo.h5" GutterBottom="true">Pokédex Entries</MudText>
+            
+            <MudGrid>
+                <MudItem xs="12" sm="6">
+                    <MudSelect T="string" @bind-Value="SelectedLanguage" Label="Language" Variant="Variant.Outlined">
+                        @foreach (var lang in _availableLanguages)
+                        {
+                            <MudSelectItem T="string" Value="lang">@lang.ToUpper()</MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudSelect T="FlavorTextEntry" @bind-Value="_selectedFlavorText" Label="Select Game Version" Variant="Variant.Outlined" 
+                               Disabled="@(!FilteredFlavorTexts.Any())" ToStringFunc="@(e => e == null ? "" : e.Version.Name.Replace("-", " ").ToUpper())">
+                        @foreach (var entry in FilteredFlavorTexts)
+                        {
+                            <MudSelectItem T="FlavorTextEntry" Value="entry">
+                                <span style="text-transform: capitalize;">@entry.Version.Name</span>
+                            </MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudItem>
+            </MudGrid>
 
+            @if (_selectedFlavorText != null)
+            {
+                <MudText Typo="Typo.body1" Class="mt-4">
+                    @_selectedFlavorText.FlavorText.Replace("\n", " ").Replace("\f", " ")
+                </MudText>
+            }
+        </MudPaper>
+    }
+}
 
 
 @code {
@@ -105,7 +113,22 @@ else
 
     private PokemonDetail? _pokemon;
     private List<EvolutionStage> _evolutionChain = new();
+    private List<string> _availableLanguages = new();
     private FlavorTextEntry? _selectedFlavorText;
+
+    private string _selectedLanguage = "en";
+    private string SelectedLanguage
+    {
+        get => _selectedLanguage;
+        set
+        {
+            _selectedLanguage = value;
+            _selectedFlavorText = FilteredFlavorTexts.FirstOrDefault();
+        }
+    }
+
+    private List<FlavorTextEntry> FilteredFlavorTexts =>
+        _pokemon?.FlavorTexts.Where(e => e.Language.Name == _selectedLanguage).ToList() ?? new();
 
     protected override async Task OnParametersSetAsync()
     {
@@ -114,6 +137,7 @@ else
             _pokemon = null;
             _evolutionChain = new();
             _selectedFlavorText = null;
+            _availableLanguages = new(); // Reset the list
             StateHasChanged();
 
             var pokemonTask = PokeRepo.GetPokemonDetailsAsync(Name);
@@ -122,10 +146,19 @@ else
 
             _pokemon = await pokemonTask;
             _evolutionChain = (await evolutionTask) ?? new();
-            _selectedFlavorText = _pokemon?.FlavorTexts.FirstOrDefault();
+
+            // ✅ THIS SECTION WAS MISSING/INCOMPLETE
+            if (_pokemon != null && _pokemon.FlavorTexts.Any())
+            {
+                // This line populates the language dropdown
+                _availableLanguages = _pokemon.FlavorTexts.Select(e => e.Language.Name).Distinct().OrderBy(l => l).ToList();
+                
+                // This line sets the default language
+                SelectedLanguage = _availableLanguages.Contains("en") ? "en" : _availableLanguages.FirstOrDefault() ?? "";
+            }
         }
     }
-
+    
     private string GetPokemonImageUrl(string pokemonUrl)
     {
         var pokemonId = pokemonUrl.TrimEnd('/').Split('/').Last();
@@ -150,6 +183,6 @@ else
         "ice" => "#96D9D6",
         "dragon" => "#6F35FC",
         "fairy" => "#D685AD",
-        _ => "",
+        _ => "#A8A77A"
     };
 }

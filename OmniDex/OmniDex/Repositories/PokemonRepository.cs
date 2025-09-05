@@ -79,10 +79,8 @@ public class PokemonRepository
     {
         var pokemonInDb = await _dbContext.Pokemons.FirstOrDefaultAsync(p => p.Name.ToLower() == name.ToLower());
 
-        // Check if we have details (including flavor text) and if they are fresh
         if (pokemonInDb != null && pokemonInDb.Height.HasValue && !string.IsNullOrEmpty(pokemonInDb.FlavorTextsJson))
         {
-            // Details are in DB, map to the detail model and return
             return new PokemonDetail
             {
                 Id = pokemonInDb.Id,
@@ -95,29 +93,26 @@ public class PokemonRepository
             };
         }
 
-        // Details are missing or stale, fetch from API
         var apiPokemonDetail = await _apiService.GetPokemonDetailsAsync(name);
         var apiSpeciesDetail = await _apiService.GetPokemonSpeciesAsync(name);
 
         if (apiPokemonDetail == null || apiSpeciesDetail == null) return null;
 
-        // English flavor text entries
-        var englishFlavorTexts = apiSpeciesDetail.FlavorTextEntries
-            .Where(entry => entry.Language.Name == "en")
-            .GroupBy(entry => entry.Version.Name) // Group by game version
-            .Select(group => group.First()) // Select the first entry for each game to avoid duplicates
+        // ✅ This is the corrected part. It no longer filters for ".Language.Name == "en"".
+        var allFlavorTexts = apiSpeciesDetail.FlavorTextEntries
+            .GroupBy(entry => $"{entry.Version.Name}-{entry.Language.Name}") // Group by game and language
+            .Select(group => group.First()) // Select first entry to avoid duplicates per language/game
             .ToList();
 
-        apiPokemonDetail.FlavorTexts = englishFlavorTexts;
+        apiPokemonDetail.FlavorTexts = allFlavorTexts;
 
         var entityToUpdate = pokemonInDb ?? new PokemonEntity { Id = apiPokemonDetail.Id, Name = apiPokemonDetail.Name };
 
-        // Update entity with all details
         entityToUpdate.Height = apiPokemonDetail.Height;
         entityToUpdate.Weight = apiPokemonDetail.Weight;
         entityToUpdate.ImageUrl = apiPokemonDetail.Sprites.FrontDefault;
         entityToUpdate.TypesJson = JsonSerializer.Serialize(apiPokemonDetail.Types);
-        entityToUpdate.FlavorTextsJson = JsonSerializer.Serialize(englishFlavorTexts); // Save descriptions to DB
+        entityToUpdate.FlavorTextsJson = JsonSerializer.Serialize(allFlavorTexts); // Save all descriptions
         entityToUpdate.LastUpdated = DateTime.UtcNow;
 
         if (pokemonInDb == null)
