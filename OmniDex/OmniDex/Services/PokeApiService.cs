@@ -144,8 +144,14 @@ namespace OmniDex.Services
         }
         public async Task<List<PokemonResult>?> GetAllPokemonListAsync()
         {
-            // Fetches all pokemon. In 2025, there are around 1302.
-            var response = await _httpClient.GetFromJsonAsync<PokemonListResponse>($"{BaseUrl}/pokemon?limit=1500");
+            // --- FOR DEVELOPMENT ---
+            // Fetches only Generation 1 Pokémon for fast database seeding.
+            var response = await _httpClient.GetFromJsonAsync<PokemonListResponse>($"{BaseUrl}/pokemon?limit=151");
+
+            // --- FOR PRODUCTION ---
+            // Uncomment this line when you are ready to seed the full database.
+            // var response = await _httpClient.GetFromJsonAsync<PokemonListResponse>($"{BaseUrl}/pokemon?limit=1500");
+
             return response?.Results;
         }
 

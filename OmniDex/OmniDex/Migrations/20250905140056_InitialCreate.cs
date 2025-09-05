@@ -22,6 +22,9 @@ namespace OmniDex.Migrations
                     Weight = table.Column<int>(type: "INTEGER", nullable: true),
                     ImageUrl = table.Column<string>(type: "TEXT", nullable: true),
                     TypesJson = table.Column<string>(type: "TEXT", nullable: true),
+                    EvolutionChainIds = table.Column<string>(type: "TEXT", nullable: true),
+                    FlavorTextsJson = table.Column<string>(type: "TEXT", nullable: true),
+                    GenerationId = table.Column<int>(type: "INTEGER", nullable: false),
                     LastUpdated = table.Column<DateTime>(type: "TEXT", nullable: false)
                 },
                 constraints: table =>

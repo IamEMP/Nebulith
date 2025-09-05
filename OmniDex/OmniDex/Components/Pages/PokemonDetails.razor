@@ -69,8 +69,34 @@ else
                 }
             </MudStack>
         </MudPaper>
+
+        @if (_pokemon.FlavorTexts.Any())
+        {
+            <MudPaper Elevation="3" Class="pa-4 mt-4">
+                <MudText Typo="Typo.h5" GutterBottom="true">Pokédex Entries</MudText>
+
+                <MudSelect T="FlavorTextEntry" @bind-Value="_selectedFlavorText" Label="Select Game Version" Variant="Variant.Outlined">
+                    @foreach (var entry in _pokemon.FlavorTexts)
+                    {
+                        <MudSelectItem T="FlavorTextEntry" Value="entry">
+                            <span style="text-transform: capitalize;">@entry.Version.Name</span>
+                        </MudSelectItem>
+                    }
+                </MudSelect>
+
+                
+                @if (_selectedFlavorText != null)
+                {
+                    <MudText Typo="Typo.body1" Class="mt-4">
+                        @_selectedFlavorText.FlavorText.Replace("\n", " ").Replace("\f", " ")
+                    </MudText>
+                }
+            </MudPaper>
+        }
     }
-}
+
+    }
+
 
 
 @code {
@@ -79,6 +105,7 @@ else
 
     private PokemonDetail? _pokemon;
     private List<EvolutionStage> _evolutionChain = new();
+    private FlavorTextEntry? _selectedFlavorText;
 
     protected override async Task OnParametersSetAsync()
     {
@@ -86,18 +113,19 @@ else
         {
             _pokemon = null;
             _evolutionChain = new();
+            _selectedFlavorText = null;
             StateHasChanged();
 
             var pokemonTask = PokeRepo.GetPokemonDetailsAsync(Name);
-            // Calling the API service directly to get the rich evolution details
             var evolutionTask = PokeApiService.GetEvolutionChainAsync(Name);
             await Task.WhenAll(pokemonTask, evolutionTask);
 
             _pokemon = await pokemonTask;
             _evolutionChain = (await evolutionTask) ?? new();
+            _selectedFlavorText = _pokemon?.FlavorTexts.FirstOrDefault();
         }
     }
-    
+
     private string GetPokemonImageUrl(string pokemonUrl)
     {
         var pokemonId = pokemonUrl.TrimEnd('/').Split('/').Last();

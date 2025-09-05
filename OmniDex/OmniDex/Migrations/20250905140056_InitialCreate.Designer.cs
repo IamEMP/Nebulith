@@ -11,7 +11,7 @@ using OmniDex.Data;
 namespace OmniDex.Migrations
 {
     [DbContext(typeof(PokedexDbContext))]
-    [Migration("20250828150650_InitialCreate")]
+    [Migration("20250905140056_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -24,6 +24,15 @@ namespace OmniDex.Migrations
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("EvolutionChainIds")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("FlavorTextsJson")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("GenerationId")
                         .HasColumnType("INTEGER");
 
                     b.Property<int?>("Height")
