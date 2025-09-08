@@ -11,7 +11,7 @@ using Nebulith.Data;
 namespace Nebulith.Migrations
 {
     [DbContext(typeof(PokedexDbContext))]
-    [Migration("20250905151953_InitialCreate")]
+    [Migration("20250905185810_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -42,6 +42,9 @@ namespace Nebulith.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<DateTime>("LastUpdated")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("MovesJson")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Name")

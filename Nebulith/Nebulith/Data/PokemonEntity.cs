@@ -20,6 +20,8 @@ public class PokemonEntity
 
     public int GenerationId { get; set; }
 
+    public string? MovesJson { get; set; }
+
     // 2-week refresh logic
     public DateTime LastUpdated { get; set; }
 

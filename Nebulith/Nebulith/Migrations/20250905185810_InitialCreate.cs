@@ -25,6 +25,7 @@ namespace Nebulith.Migrations
                     EvolutionChainIds = table.Column<string>(type: "TEXT", nullable: true),
                     FlavorTextsJson = table.Column<string>(type: "TEXT", nullable: true),
                     GenerationId = table.Column<int>(type: "INTEGER", nullable: false),
+                    MovesJson = table.Column<string>(type: "TEXT", nullable: true),
                     LastUpdated = table.Column<DateTime>(type: "TEXT", nullable: false)
                 },
                 constraints: table =>

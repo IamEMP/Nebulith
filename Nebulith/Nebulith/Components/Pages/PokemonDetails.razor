@@ -104,7 +104,66 @@ else
             }
         </MudPaper>
     }
+
+    @if (_pokemon.Moves.Any())
+    {
+        <MudPaper Elevation="3" Class="pa-4 mt-4">
+            <div class="d-flex justify-space-between align-center mb-4">
+                <MudText Typo="Typo.h5">Moves Learned by @_pokemon.Name</MudText>
+                <MudSelect T="string" @bind-Value="_selectedVersionGroup" Label="Game Version" Dense="true" Variant="Variant.Outlined" Style="max-width: 250px;" Class="ml-4">
+                    @foreach (var version in _availableVersionGroups)
+                    {
+                        <MudSelectItem T="string" Value="version">@version.Replace("-", " ").ToUpper()</MudSelectItem>
+                    }
+                </MudSelect>
+            </div>
+
+            <MudGrid>
+                @* --- Left Column --- *@
+                <MudItem xs="12" md="6">
+                    <MudText Typo="Typo.h6" GutterBottom="true">By Level Up</MudText>
+                    <MudTable Items="@LevelUpMoves" Dense="true" Hover="true" Striped="true" Breakpoint="Breakpoint.Sm" Elevation="0">
+                        <HeaderContent>
+                            <MudTh>Lv.</MudTh>
+                            <MudTh>Move</MudTh>
+                        </HeaderContent>
+                        <RowTemplate>
+                            <MudTd DataLabel="Lv.">@context.Level</MudTd>
+                            <MudTd DataLabel="Move">@context.Name.Replace("-", " ")</MudTd>
+                        </RowTemplate>
+                    </MudTable>
+
+                    @if (EvolutionMoves.Any())
+                    {
+                        <MudText Typo="Typo.h6" GutterBottom="true" Class="mt-4">By Evolution</MudText>
+                        <MudTable Items="@EvolutionMoves" Dense="true" Hover="true" Striped="true" Breakpoint="Breakpoint.Sm" Elevation="0">
+                            <HeaderContent>
+                                <MudTh>Move</MudTh>
+                            </HeaderContent>
+                            <RowTemplate>
+                                <MudTd DataLabel="Move">@context.Name.Replace("-", " ")</MudTd>
+                            </RowTemplate>
+                        </MudTable>
+                    }
+                </MudItem>
+
+                @* --- Right Column --- *@
+                <MudItem xs="12" md="6">
+                    <MudText Typo="Typo.h6" GutterBottom="true">By TM</MudText>
+                    <MudTable Items="@TMMoves" Dense="true" Hover="true" Striped="true" Breakpoint="Breakpoint.Sm" Elevation="0">
+                        <HeaderContent>
+                            <MudTh>Move</MudTh>
+                        </HeaderContent>
+                        <RowTemplate>
+                            <MudTd DataLabel="Move">@context.Name.Replace("-", " ")</MudTd>
+                        </RowTemplate>
+                    </MudTable>
+                </MudItem>
+            </MudGrid>
+        </MudPaper>
+    }
 }
+
 
 
 @code {
@@ -115,6 +174,9 @@ else
     private List<EvolutionStage> _evolutionChain = new();
     private List<string> _availableLanguages = new();
     private FlavorTextEntry? _selectedFlavorText;
+    private List<string> _availableVersionGroups = new();
+    private string? _selectedVersionGroup;
+
 
     private string _selectedLanguage = "en";
     private string SelectedLanguage
@@ -129,6 +191,38 @@ else
 
     private List<FlavorTextEntry> FilteredFlavorTexts =>
         _pokemon?.FlavorTexts.Where(e => e.Language.Name == _selectedLanguage).ToList() ?? new();
+
+    private class ProcessedMove
+    {
+        public int Level { get; set; }
+        public string Name { get; set; } = string.Empty;
+    }
+
+    private IEnumerable<ProcessedMove> GetMovesFor(string learnMethod)
+    {
+        if (_pokemon == null || _selectedVersionGroup == null)
+            return Enumerable.Empty<ProcessedMove>();
+
+        return _pokemon.Moves
+            .SelectMany(m => m.VersionGroupDetails
+                .Where(vgd => vgd.VersionGroup.Name == _selectedVersionGroup && vgd.MoveLearnMethod.Name == learnMethod)
+                .Select(vgd => new ProcessedMove
+                {
+                    Level = vgd.LevelLearnedAt,
+                    Name = m.Move.Name
+                }))
+            .OrderBy(m => m.Level)
+            .ThenBy(m => m.Name)
+            .ToList();
+    }
+
+    private IEnumerable<ProcessedMove> LevelUpMoves => GetMovesFor("level-up").Where(m => m.Level > 0);
+    private IEnumerable<ProcessedMove> TMMoves => GetMovesFor("machine");
+    // I also fixed a bug here: evolution moves are learn method "evolution", not level-up at level 0.
+    private IEnumerable<ProcessedMove> EvolutionMoves => GetMovesFor("evolution");
+    // End of missing section
+
+
 
     protected override async Task OnParametersSetAsync()
     {
@@ -150,12 +244,20 @@ else
            
             if (_pokemon != null && _pokemon.FlavorTexts.Any())
             {
+
+                _availableVersionGroups = _pokemon.Moves
+                    .SelectMany(m => m.VersionGroupDetails.Select(vgd => vgd.VersionGroup.Name))
+                    .Distinct()
+                    .OrderBy(s => s)
+                    .ToList();
+                _selectedVersionGroup = _availableVersionGroups.LastOrDefault(); // Default to the latest game
                
                 _availableLanguages = _pokemon.FlavorTexts.Select(e => e.Language.Name).Distinct().OrderBy(l => l).ToList();
                 
                 // This line sets the default language
                 SelectedLanguage = _availableLanguages.Contains("en") ? "en" : _availableLanguages.FirstOrDefault() ?? "";
             }
+
         }
     }
     

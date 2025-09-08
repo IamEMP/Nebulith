@@ -20,6 +20,47 @@ namespace Nebulith.Models
         public string Url { get; set; } = string.Empty;
     }
 
+    public class MoveInfo
+    {
+        [JsonPropertyName("move")]
+        public MoveDetail Move { get; set; } = new();
+
+        [JsonPropertyName("version_group_details")]
+        public List<VersionGroupDetail> VersionGroupDetails { get; set; } = new();
+    }
+
+    public class MoveDetail
+    {
+        [JsonPropertyName("name")]
+        public string Name { get; set; } = string.Empty;
+        [JsonPropertyName("url")]
+        public string Url { get; set; } = string.Empty;
+    }
+
+    public class VersionGroupDetail
+    {
+        [JsonPropertyName("level_learned_at")]
+        public int LevelLearnedAt { get; set; }
+
+        [JsonPropertyName("move_learn_method")]
+        public MoveLearnMethod MoveLearnMethod { get; set; } = new();
+
+        [JsonPropertyName("version_group")]
+        public VersionGroup VersionGroup { get; set; } = new();
+    }
+
+    public class MoveLearnMethod
+    {
+        [JsonPropertyName("name")]
+        public string Name { get; set; } = string.Empty;
+    }
+
+    public class VersionGroup
+    {
+        [JsonPropertyName("name")]
+        public string Name { get; set; } = string.Empty;
+    }
+
     public class PokemonDetail
     {
         [JsonPropertyName("id")]
@@ -41,6 +82,9 @@ namespace Nebulith.Models
         public List<TypeInfo> Types { get; set; } = [];
 
         public List<FlavorTextEntry> FlavorTexts { get; set; } = new();
+
+        [JsonPropertyName("moves")]
+        public List<MoveInfo> Moves { get; set; } = new();
     }
 
     public class SpriteInfo

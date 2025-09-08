@@ -79,9 +79,9 @@ public class PokemonRepository
     {
         var pokemonInDb = await _dbContext.Pokemons.FirstOrDefaultAsync(p => p.Name.ToLower() == name.ToLower());
 
-        if (pokemonInDb != null && pokemonInDb.Height.HasValue && !string.IsNullOrEmpty(pokemonInDb.FlavorTextsJson))
+        if (pokemonInDb != null && pokemonInDb.Height.HasValue && !string.IsNullOrEmpty(pokemonInDb.MovesJson))
         {
-            return new PokemonDetail
+            var pokemonDetail = new PokemonDetail
             {
                 Id = pokemonInDb.Id,
                 Name = pokemonInDb.Name,
@@ -89,19 +89,23 @@ public class PokemonRepository
                 Weight = pokemonInDb.Weight ?? 0,
                 Sprites = new SpriteInfo { FrontDefault = pokemonInDb.ImageUrl ?? "" },
                 Types = JsonSerializer.Deserialize<List<TypeInfo>>(pokemonInDb.TypesJson ?? "[]") ?? new(),
-                FlavorTexts = JsonSerializer.Deserialize<List<FlavorTextEntry>>(pokemonInDb.FlavorTextsJson ?? "[]") ?? new()
+                FlavorTexts = JsonSerializer.Deserialize<List<FlavorTextEntry>>(pokemonInDb.FlavorTextsJson ?? "[]") ?? new(),
+                Moves = JsonSerializer.Deserialize<List<MoveInfo>>(pokemonInDb.MovesJson ?? "[]") ?? new()
             };
+            return pokemonDetail;
         }
 
         var apiPokemonDetail = await _apiService.GetPokemonDetailsAsync(name);
         var apiSpeciesDetail = await _apiService.GetPokemonSpeciesAsync(name);
 
-        if (apiPokemonDetail == null || apiSpeciesDetail == null) return null;
+        if (apiPokemonDetail == null || apiSpeciesDetail == null)
+        {
+            return null; 
+        }
 
-        
         var allFlavorTexts = apiSpeciesDetail.FlavorTextEntries
-            .GroupBy(entry => $"{entry.Version.Name}-{entry.Language.Name}") // Group by game and language
-            .Select(group => group.First()) // Select first entry to avoid duplicates per language/game
+            .GroupBy(entry => $"{entry.Version.Name}-{entry.Language.Name}")
+            .Select(group => group.First())
             .ToList();
 
         apiPokemonDetail.FlavorTexts = allFlavorTexts;
@@ -112,7 +116,8 @@ public class PokemonRepository
         entityToUpdate.Weight = apiPokemonDetail.Weight;
         entityToUpdate.ImageUrl = apiPokemonDetail.Sprites.FrontDefault;
         entityToUpdate.TypesJson = JsonSerializer.Serialize(apiPokemonDetail.Types);
-        entityToUpdate.FlavorTextsJson = JsonSerializer.Serialize(allFlavorTexts); // Save all descriptions
+        entityToUpdate.FlavorTextsJson = JsonSerializer.Serialize(allFlavorTexts);
+        entityToUpdate.MovesJson = JsonSerializer.Serialize(apiPokemonDetail.Moves);
         entityToUpdate.LastUpdated = DateTime.UtcNow;
 
         if (pokemonInDb == null)
