@@ -11,7 +11,7 @@ using Nebulith.Data;
 namespace Nebulith.Migrations
 {
     [DbContext(typeof(PokedexDbContext))]
-    [Migration("20250905185810_InitialCreate")]
+    [Migration("20250912191818_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -25,6 +25,9 @@ namespace Nebulith.Migrations
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
+
+                    b.Property<string>("AbilitiesJson")
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("EvolutionChainIds")
                         .HasColumnType("TEXT");
@@ -49,6 +52,9 @@ namespace Nebulith.Migrations
 
                     b.Property<string>("Name")
                         .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Species")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("TypesJson")

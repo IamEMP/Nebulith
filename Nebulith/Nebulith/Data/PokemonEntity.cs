@@ -22,6 +22,9 @@ public class PokemonEntity
 
     public string? MovesJson { get; set; }
 
+    public string? Species { get; set; }
+    public string? AbilitiesJson { get; set; }
+
     // 2-week refresh logic
     public DateTime LastUpdated { get; set; }
 
