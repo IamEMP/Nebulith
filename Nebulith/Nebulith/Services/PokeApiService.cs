@@ -55,7 +55,7 @@ namespace Nebulith.Services
                
                 var url = $"{BaseUrl}/pokemon/{name.ToLower()}";
 
-                
+
                 var pokemonDetail = await _httpClient.GetFromJsonAsync<PokemonDetail>(url);
 
                 if (pokemonDetail != null)

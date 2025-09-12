@@ -23,6 +23,9 @@ namespace Nebulith.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
+                    b.Property<string>("AbilitiesJson")
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("EvolutionChainIds")
                         .HasColumnType("TEXT");
 
@@ -46,6 +49,9 @@ namespace Nebulith.Migrations
 
                     b.Property<string>("Name")
                         .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Species")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("TypesJson")

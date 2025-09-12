@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Nebulith.Models;
+using System;
 using System.Text.Json.Serialization;
 
 namespace Nebulith.Models
@@ -49,6 +50,30 @@ namespace Nebulith.Models
         public VersionGroup VersionGroup { get; set; } = new();
     }
 
+    public class AbilityInfo
+    {
+        [JsonPropertyName("ability")]
+        public AbilityDetail Ability { get; set; } = new();
+
+        [JsonPropertyName("is_hidden")]
+        public bool IsHidden { get; set; }
+    }
+
+    public class AbilityDetail
+    {
+        [JsonPropertyName("name")]
+        public string Name { get; set; } = string.Empty;
+    }
+
+    public class Genus
+    {
+        [JsonPropertyName("genus")]
+        public string GenusText { get; set; } = string.Empty;
+
+        [JsonPropertyName("language")]
+        public LanguageInfo Language { get; set; } = new();
+    }
+
     public class MoveLearnMethod
     {
         [JsonPropertyName("name")]
@@ -70,22 +95,32 @@ namespace Nebulith.Models
         public string Name { get; set; } = string.Empty;
 
         [JsonPropertyName("height")]
-        public int Height { get; set; } // In decimetres
+        public int Height { get; set; }
 
         [JsonPropertyName("weight")]
-        public int Weight { get; set; } // In hectograms
+        public int Weight { get; set; }
 
         [JsonPropertyName("sprites")]
         public SpriteInfo Sprites { get; set; } = new();
 
         [JsonPropertyName("types")]
-        public List<TypeInfo> Types { get; set; } = [];
-
-        public List<FlavorTextEntry> FlavorTexts { get; set; } = new();
+        public List<TypeInfo> Types { get; set; } = new();
 
         [JsonPropertyName("moves")]
         public List<MoveInfo> Moves { get; set; } = new();
+
+        [JsonPropertyName("abilities")]
+        public List<AbilityInfo> Abilities { get; set; } = new();
+
+        // This property is ignored during initial deserialization and populated manually by the repository.
+        [JsonIgnore]
+        public string Species { get; set; } = string.Empty;
+
+        // This property is also populated manually by the repository from the second API call.
+        [JsonIgnore]
+        public List<FlavorTextEntry> FlavorTexts { get; set; } = new();
     }
+}
 
     public class SpriteInfo
     {
@@ -115,6 +150,9 @@ namespace Nebulith.Models
 
         [JsonPropertyName("flavor_text_entries")]
         public List<FlavorTextEntry> FlavorTextEntries { get; set; } = new();
+
+        [JsonPropertyName("genera")]
+        public List<Genus> Genera { get; set; } = new();
     }
 
     public class EvolutionChainUrl
@@ -203,6 +241,3 @@ namespace Nebulith.Models
         public string Name { get; set; } = string.Empty;
     }
 
-    
-
-}

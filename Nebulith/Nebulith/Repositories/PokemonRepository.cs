@@ -75,10 +75,12 @@ public class PokemonRepository
         await _dbContext.SaveChangesAsync();
         _logger.LogInformation("Database seeding complete!");
     }
+
     public async Task<PokemonDetail?> GetPokemonDetailsAsync(string name)
     {
         var pokemonInDb = await _dbContext.Pokemons.FirstOrDefaultAsync(p => p.Name.ToLower() == name.ToLower());
 
+        // Check if the required details are in the database
         if (pokemonInDb != null && pokemonInDb.Height.HasValue && !string.IsNullOrEmpty(pokemonInDb.MovesJson))
         {
             var pokemonDetail = new PokemonDetail
@@ -87,49 +89,44 @@ public class PokemonRepository
                 Name = pokemonInDb.Name,
                 Height = pokemonInDb.Height.Value,
                 Weight = pokemonInDb.Weight ?? 0,
+                Species = pokemonInDb.Species ?? "",
                 Sprites = new SpriteInfo { FrontDefault = pokemonInDb.ImageUrl ?? "" },
                 Types = JsonSerializer.Deserialize<List<TypeInfo>>(pokemonInDb.TypesJson ?? "[]") ?? new(),
                 FlavorTexts = JsonSerializer.Deserialize<List<FlavorTextEntry>>(pokemonInDb.FlavorTextsJson ?? "[]") ?? new(),
-                Moves = JsonSerializer.Deserialize<List<MoveInfo>>(pokemonInDb.MovesJson ?? "[]") ?? new()
+                Moves = JsonSerializer.Deserialize<List<MoveInfo>>(pokemonInDb.MovesJson ?? "[]") ?? new(),
+                Abilities = JsonSerializer.Deserialize<List<AbilityInfo>>(pokemonInDb.AbilitiesJson ?? "[]") ?? new()
             };
             return pokemonDetail;
         }
 
+        // If not in DB, fetch all data from the APIs
         var apiPokemonDetail = await _apiService.GetPokemonDetailsAsync(name);
         var apiSpeciesDetail = await _apiService.GetPokemonSpeciesAsync(name);
+        if (apiPokemonDetail == null || apiSpeciesDetail == null) return null;
 
-        if (apiPokemonDetail == null || apiSpeciesDetail == null)
-        {
-            return null; 
-        }
+        // Manually populate the DTO with data from both API calls
+        var species = apiSpeciesDetail.Genera.FirstOrDefault(g => g.Language.Name == "en")?.GenusText ?? "Unknown";
+        apiPokemonDetail.Species = species;
+        apiPokemonDetail.FlavorTexts = apiSpeciesDetail.FlavorTextEntries;
 
-        var allFlavorTexts = apiSpeciesDetail.FlavorTextEntries
-            .GroupBy(entry => $"{entry.Version.Name}-{entry.Language.Name}")
-            .Select(group => group.First())
-            .ToList();
-
-        apiPokemonDetail.FlavorTexts = allFlavorTexts;
-
+        // Find or create the entity to save to the database
         var entityToUpdate = pokemonInDb ?? new PokemonEntity { Id = apiPokemonDetail.Id, Name = apiPokemonDetail.Name };
 
+        // Update all fields on the entity
         entityToUpdate.Height = apiPokemonDetail.Height;
         entityToUpdate.Weight = apiPokemonDetail.Weight;
         entityToUpdate.ImageUrl = apiPokemonDetail.Sprites.FrontDefault;
+        entityToUpdate.Species = apiPokemonDetail.Species;
         entityToUpdate.TypesJson = JsonSerializer.Serialize(apiPokemonDetail.Types);
-        entityToUpdate.FlavorTextsJson = JsonSerializer.Serialize(allFlavorTexts);
         entityToUpdate.MovesJson = JsonSerializer.Serialize(apiPokemonDetail.Moves);
+        entityToUpdate.AbilitiesJson = JsonSerializer.Serialize(apiPokemonDetail.Abilities);
+        entityToUpdate.FlavorTextsJson = JsonSerializer.Serialize(apiPokemonDetail.FlavorTexts); // Save all languages
         entityToUpdate.LastUpdated = DateTime.UtcNow;
 
-        if (pokemonInDb == null)
-        {
-            _dbContext.Pokemons.Add(entityToUpdate);
-        }
-        else
-        {
-            _dbContext.Pokemons.Update(entityToUpdate);
-        }
-        await _dbContext.SaveChangesAsync();
+        if (pokemonInDb == null) _dbContext.Pokemons.Add(entityToUpdate);
+        else _dbContext.Pokemons.Update(entityToUpdate);
 
+        await _dbContext.SaveChangesAsync();
         return apiPokemonDetail;
     }
 

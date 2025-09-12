@@ -1,9 +1,10 @@
 ﻿@page "/pokemon/{Name}"
 @rendermode InteractiveServer
+
+@using System.Linq
 @using Nebulith.Repositories
 @using Nebulith.Models
 @using Nebulith.Services
-@using MudBlazor
 
 @inject PokemonRepository PokeRepo
 @inject PokeApiService PokeApiService
@@ -25,7 +26,7 @@ else
                     @_pokemon.Name
                 </MudText>
                 <MudText Typo="Typo.h5" GutterBottom="true">#@_pokemon.Id.ToString("D3")</MudText>
-                
+
                 <MudText Typo="Typo.h6" Class="mt-4"><b>Type</b></MudText>
                 <MudStack Row="true">
                     @foreach (var typeInfo in _pokemon.Types)
@@ -33,7 +34,22 @@ else
                         <MudChip T="string" Style="@($"background-color: {GetColorForType(typeInfo.Type.Name)}; color: white;")" Size="Size.Large">@typeInfo.Type.Name</MudChip>
                     }
                 </MudStack>
-                
+
+                <MudText Typo="Typo.h6" Class="mt-4"><b>Species</b></MudText>
+                <MudText>@_pokemon.Species</MudText>
+
+                <MudText Typo="Typo.h6" Class="mt-4"><b>Abilities</b></MudText>
+                @foreach (var abilityInfo in _pokemon.Abilities)
+                {
+                    <div style="text-transform: capitalize;">
+                        @abilityInfo.Ability.Name.Replace("-", " ")
+                        @if (abilityInfo.IsHidden)
+                        {
+                            <MudChip T="string" Size="Size.Small" Variant="Variant.Outlined" Class="ml-2">(hidden ability)</MudChip>
+                        }
+                    </div>
+                }
+
                 <MudText Typo="Typo.h6" Class="mt-4"><b>Height:</b> @((double)_pokemon.Height / 10) m</MudText>
                 <MudText Typo="Typo.h6"><b>Weight:</b> @((double)_pokemon.Weight / 10) kg</MudText>
             </MudItem>
@@ -44,11 +60,9 @@ else
     {
         <MudPaper Elevation="3" Class="pa-4 mt-4">
             <MudText Typo="Typo.h5" GutterBottom="true">Evolution Chain</MudText>
-
             <MudStack Row="true" Justify="Justify.Center" AlignItems="AlignItems.Center" Spacing="2" Wrap="Wrap.Wrap">
                 @foreach (var (stage, i) in _evolutionChain.Select((value, index) => (value, index)))
                 {
-                    @* If this is NOT the first Pokemon, display the arrow and trigger text first *@
                     @if (i > 0)
                     {
                         <div class="d-flex flex-column align-center">
@@ -56,8 +70,6 @@ else
                             <MudIcon Icon="@Icons.Material.Filled.ArrowForward" />
                         </div>
                     }
-
-                    @* Then, display the Pokemon's card *@
                     <MudCard Class="text-center" Elevation="0">
                         <a href="/pokemon/@stage.Pokemon.Name">
                             <MudImage Src="@GetPokemonImageUrl(stage.Pokemon.Url)" Alt="@stage.Pokemon.Name" Width="100" />
@@ -73,7 +85,6 @@ else
     {
         <MudPaper Elevation="3" Class="pa-4 mt-4">
             <MudText Typo="Typo.h5" GutterBottom="true">Pokédex Entries</MudText>
-            
             <MudGrid>
                 <MudItem xs="12" sm="6">
                     <MudSelect T="string" @bind-Value="SelectedLanguage" Label="Language" Variant="Variant.Outlined">
@@ -84,7 +95,7 @@ else
                     </MudSelect>
                 </MudItem>
                 <MudItem xs="12" sm="6">
-                    <MudSelect T="FlavorTextEntry" @bind-Value="_selectedFlavorText" Label="Select Game Version" Variant="Variant.Outlined" 
+                    <MudSelect T="FlavorTextEntry" @bind-Value="_selectedFlavorText" Label="Select Game Version" Variant="Variant.Outlined"
                                Disabled="@(!FilteredFlavorTexts.Any())" ToStringFunc="@(e => e == null ? "" : e.Version.Name.Replace("-", " ").ToUpper())">
                         @foreach (var entry in FilteredFlavorTexts)
                         {
@@ -95,7 +106,6 @@ else
                     </MudSelect>
                 </MudItem>
             </MudGrid>
-
             @if (_selectedFlavorText != null)
             {
                 <MudText Typo="Typo.body1" Class="mt-4">
@@ -117,9 +127,7 @@ else
                     }
                 </MudSelect>
             </div>
-
             <MudGrid>
-                @* --- Left Column --- *@
                 <MudItem xs="12" md="6">
                     <MudText Typo="Typo.h6" GutterBottom="true">By Level Up</MudText>
                     <MudTable Items="@LevelUpMoves" Dense="true" Hover="true" Striped="true" Breakpoint="Breakpoint.Sm" Elevation="0">
@@ -146,8 +154,6 @@ else
                         </MudTable>
                     }
                 </MudItem>
-
-                @* --- Right Column --- *@
                 <MudItem xs="12" md="6">
                     <MudText Typo="Typo.h6" GutterBottom="true">By TM</MudText>
                     <MudTable Items="@TMMoves" Dense="true" Hover="true" Striped="true" Breakpoint="Breakpoint.Sm" Elevation="0">
@@ -165,7 +171,6 @@ else
 }
 
 
-
 @code {
     [Parameter]
     public string Name { get; set; } = string.Empty;
@@ -176,7 +181,6 @@ else
     private FlavorTextEntry? _selectedFlavorText;
     private List<string> _availableVersionGroups = new();
     private string? _selectedVersionGroup;
-
 
     private string _selectedLanguage = "en";
     private string SelectedLanguage
@@ -218,11 +222,7 @@ else
 
     private IEnumerable<ProcessedMove> LevelUpMoves => GetMovesFor("level-up").Where(m => m.Level > 0);
     private IEnumerable<ProcessedMove> TMMoves => GetMovesFor("machine");
-    // I also fixed a bug here: evolution moves are learn method "evolution", not level-up at level 0.
     private IEnumerable<ProcessedMove> EvolutionMoves => GetMovesFor("evolution");
-    // End of missing section
-
-
 
     protected override async Task OnParametersSetAsync()
     {
@@ -230,9 +230,6 @@ else
         {
             _pokemon = null;
             _evolutionChain = new();
-            _selectedFlavorText = null;
-            _availableLanguages = new(); // Reset the list
-            StateHasChanged();
 
             var pokemonTask = PokeRepo.GetPokemonDetailsAsync(Name);
             var evolutionTask = PokeApiService.GetEvolutionChainAsync(Name);
@@ -241,26 +238,27 @@ else
             _pokemon = await pokemonTask;
             _evolutionChain = (await evolutionTask) ?? new();
 
-           
-            if (_pokemon != null && _pokemon.FlavorTexts.Any())
+            if (_pokemon != null)
             {
+                if (_pokemon.FlavorTexts.Any())
+                {
+                    _availableLanguages = _pokemon.FlavorTexts.Select(e => e.Language.Name).Distinct().OrderBy(l => l).ToList();
+                    SelectedLanguage = _availableLanguages.Contains("en") ? "en" : _availableLanguages.FirstOrDefault() ?? "";
+                }
 
-                _availableVersionGroups = _pokemon.Moves
-                    .SelectMany(m => m.VersionGroupDetails.Select(vgd => vgd.VersionGroup.Name))
-                    .Distinct()
-                    .OrderBy(s => s)
-                    .ToList();
-                _selectedVersionGroup = _availableVersionGroups.LastOrDefault(); // Default to the latest game
-               
-                _availableLanguages = _pokemon.FlavorTexts.Select(e => e.Language.Name).Distinct().OrderBy(l => l).ToList();
-                
-                // This line sets the default language
-                SelectedLanguage = _availableLanguages.Contains("en") ? "en" : _availableLanguages.FirstOrDefault() ?? "";
+                if (_pokemon.Moves.Any())
+                {
+                    _availableVersionGroups = _pokemon.Moves
+                        .SelectMany(m => m.VersionGroupDetails.Select(vgd => vgd.VersionGroup.Name))
+                        .Distinct()
+                        .OrderBy(s => s)
+                        .ToList();
+                    _selectedVersionGroup = _availableVersionGroups.LastOrDefault();
+                }
             }
-
         }
     }
-    
+
     private string GetPokemonImageUrl(string pokemonUrl)
     {
         var pokemonId = pokemonUrl.TrimEnd('/').Split('/').Last();
